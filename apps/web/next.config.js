@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@bumi-upi/ui', '@bumi-upi/db'],
+  transpilePackages: ['@bumi-upi/db'],
 
   images: {
     domains: ['images.unsplash.com', 'api.telegram.org'],
