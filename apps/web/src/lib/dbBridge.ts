@@ -97,6 +97,24 @@ class LocalOrderEngine {
     return null;
   }
 
+  updateOrderStatus(idOrNumber: string, status: any): OrderRecord | null {
+    for (const ord of Array.from(this.orders.values())) {
+      if (ord.id === idOrNumber || ord.orderNumber === idOrNumber || ord.idempotencyKey === idOrNumber) {
+        ord.status = status;
+        this.orders.set(ord.id, ord);
+        this.orders.set(ord.idempotencyKey, ord);
+        return { ...ord };
+      }
+    }
+    return null;
+  }
+
+  getCustomerOrders(customerId?: string): OrderRecord[] {
+    const list = Array.from(new Set(this.orders.values()));
+    if (!customerId) return list;
+    return list.filter((o) => o.customerId === customerId);
+  }
+
   generateOtp(phone: string) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 10 * 60 * 1000;

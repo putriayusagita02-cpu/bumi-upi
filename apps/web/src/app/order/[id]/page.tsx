@@ -23,39 +23,81 @@ export default function OrderTrackerPage() {
     { key: 'completed', label: 'Selesai', desc: 'Selamat menikmati santapan Bumi Upi!' },
   ];
 
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
   useEffect(() => {
     async function loadOrder() {
+      // Jika sedang ada proses update status, jangan overwrite dari polling
+      if (updatingStatus) return;
+
       try {
         const res = await fetch(`/api/orders?id=${orderId}`);
         const data = await res.json();
         if (data.success && data.order) {
-          setOrder(data.order);
-          const idx = steps.findIndex((s) => s.key === data.order.status);
+          // Ambil status tersimpan dari localStorage jika status lokal lebih maju
+          let resolvedStatus = data.order.status;
+          if (typeof window !== 'undefined') {
+            try {
+              const raw = localStorage.getItem('bumi_upi_client_orders');
+              if (raw) {
+                const list = JSON.parse(raw);
+                const local = list.find((o: any) => o.id === orderId || o.orderNumber === orderId);
+                if (local && local.status) {
+                  const sIdx = steps.findIndex((s) => s.key === local.status);
+                  const sServerIdx = steps.findIndex((s) => s.key === resolvedStatus);
+                  if (sIdx > sServerIdx) {
+                    resolvedStatus = local.status;
+                  }
+                }
+              }
+            } catch {}
+          }
+
+          setOrder({ ...data.order, status: resolvedStatus });
+          const idx = steps.findIndex((s) => s.key === resolvedStatus);
           setCurrentStepIndex(idx >= 0 ? idx : 0);
         } else {
-          // Fallback mock order if direct link
-          const mockOrd: OrderRecord = {
-            id: orderId || 'ord-mock',
-            orderNumber: `BU-ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-0088`,
-            idempotencyKey: 'idemp-mock',
-            orderType: 'dine_in',
-            tableNumber: 'Meja 04',
-            status: 'confirmed',
-            subtotal: 68000,
-            discountAmount: 15000,
-            finalAmount: 53000,
-            pointsEarned: 5,
-            paymentMethod: 'qris',
-            paymentStatus: 'paid',
-            items: [
-              { productId: 30, itemName: 'Nasi Goreng Upiwati', quantity: 1, unitPrice: 26000 },
-              { productId: 74, itemName: 'Kopi Hitam (L, Panas)', quantity: 1, unitPrice: 22000 },
-              { productId: 95, itemName: 'Roti Bakar Telur Keju', quantity: 1, unitPrice: 23000 },
-            ],
-            createdAt: new Date().toISOString(),
-          };
-          setOrder(mockOrd);
-          setCurrentStepIndex(0);
+          // Cek localStorage browser terlebih dahulu
+          let localOrder: OrderRecord | null = null;
+          if (typeof window !== 'undefined') {
+            try {
+              const raw = localStorage.getItem('bumi_upi_client_orders');
+              if (raw) {
+                const list = JSON.parse(raw);
+                localOrder = list.find((o: any) => o.id === orderId || o.orderNumber === orderId) || null;
+              }
+            } catch {}
+          }
+
+          if (localOrder) {
+            setOrder(localOrder);
+            const idx = steps.findIndex((s) => s.key === localOrder.status);
+            setCurrentStepIndex(idx >= 0 ? idx : 0);
+          } else {
+            // Fallback mock order if direct link
+            const mockOrd: OrderRecord = {
+              id: orderId || 'ord-mock',
+              orderNumber: `BU-ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-0088`,
+              idempotencyKey: 'idemp-mock',
+              orderType: 'dine_in',
+              tableNumber: 'Meja 04',
+              status: 'confirmed',
+              subtotal: 68000,
+              discountAmount: 15000,
+              finalAmount: 53000,
+              pointsEarned: 5,
+              paymentMethod: 'qris',
+              paymentStatus: 'paid',
+              items: [
+                { productId: 30, itemName: 'Nasi Goreng Upiwati', quantity: 1, unitPrice: 26000 },
+                { productId: 74, itemName: 'Kopi Hitam (L, Panas)', quantity: 1, unitPrice: 22000 },
+                { productId: 95, itemName: 'Roti Bakar Telur Keju', quantity: 1, unitPrice: 23000 },
+              ],
+              createdAt: new Date().toISOString(),
+            };
+            setOrder(mockOrd);
+            setCurrentStepIndex(0);
+          }
         }
       } catch {
         // fallback
@@ -72,10 +114,42 @@ export default function OrderTrackerPage() {
     }, 3000);
 
     return () => clearInterval(pollInterval);
-  }, [orderId]);
+  }, [orderId, updatingStatus]);
 
-  const advanceStep = () => {
-    setCurrentStepIndex((prev) => Math.min(steps.length - 1, prev + 1));
+  const advanceStep = async () => {
+    if (!order || updatingStatus) return;
+    const nextIdx = Math.min(steps.length - 1, currentStepIndex + 1);
+    const nextStatus = steps[nextIdx].key;
+
+    setCurrentStepIndex(nextIdx);
+    const updatedOrder: OrderRecord = { ...order, status: nextStatus };
+    setOrder(updatedOrder);
+    setUpdatingStatus(true);
+
+    // Simpan ke localStorage agar tidak ter-reset oleh interval polling
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('bumi_upi_client_orders');
+        const list = raw ? JSON.parse(raw) : [];
+        const map = new Map(list.map((o: any) => [o.id, o]));
+        map.set(updatedOrder.id, updatedOrder);
+        localStorage.setItem('bumi_upi_client_orders', JSON.stringify(Array.from(map.values())));
+      } catch (e) {
+        console.warn('Failed to persist locally', e);
+      }
+    }
+
+    try {
+      await fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: order.id, status: nextStatus }),
+      });
+    } catch (e) {
+      console.warn('Failed to persist status change to server', e);
+    } finally {
+      setUpdatingStatus(false);
+    }
   };
 
   const handleCopyReceipt = () => {
@@ -224,9 +298,11 @@ export default function OrderTrackerPage() {
                   <button
                     type="button"
                     onClick={advanceStep}
-                    className="py-1.5 px-3 rounded-lg bg-[#3E4F30] text-[#F5EEDC] text-xs font-semibold hover:brightness-110 active:scale-95 shadow-xs"
+                    disabled={updatingStatus}
+                    className="py-1.5 px-3 rounded-lg bg-[#3E4F30] text-[#F5EEDC] text-xs font-semibold hover:brightness-110 active:scale-95 shadow-xs disabled:opacity-60 flex items-center gap-1.5"
                   >
-                    Simulasi Status Berikutnya →
+                    {updatingStatus && <span className="animate-spin text-xs">⏳</span>}
+                    <span>{updatingStatus ? 'Menyimpan...' : 'Simulasi Status Berikutnya →'}</span>
                   </button>
                 ) : (
                   <span className="text-xs font-bold text-[#3E4F30] bg-[#E4EADF] px-2.5 py-1 rounded-full">

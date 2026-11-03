@@ -13,6 +13,12 @@ function getSharedFilePath(): string | null {
     // Dynamic require to prevent client-side bundler errors
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const path = require('path');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const os = require('os');
+    // On Vercel or read-only cloud serverless, process.cwd() is read-only, use os.tmpdir()
+    if (process.env.VERCEL || process.env.TMPDIR || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+      return path.resolve(os.tmpdir(), 'bumi_upi_live_orders.json');
+    }
     return path.resolve(process.cwd(), '.data', 'live_orders.json');
   } catch {
     return null;
@@ -57,20 +63,32 @@ export function saveSharedOrder(order: Order): void {
       const fs = require('fs');
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const path = require('path');
-      const filePath = getSharedFilePath();
+      let filePath = getSharedFilePath();
       if (filePath) {
-        const dir = path.dirname(filePath);
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
+        try {
+          const dir = path.dirname(filePath);
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          const existing = getSharedOrders();
+          const map = new Map(existing.map((o) => [o.id, o]));
+          map.set(order.id, order);
+          const list = Array.from(map.values());
+          fs.writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf-8');
+        } catch (e) {
+          // If cwd/.data fails with EROFS (e.g. on Vercel), fallback to tmpdir
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const os = require('os');
+          filePath = path.resolve(os.tmpdir(), 'bumi_upi_live_orders.json');
+          const existing = getSharedOrders();
+          const map = new Map(existing.map((o) => [o.id, o]));
+          map.set(order.id, order);
+          const list = Array.from(map.values());
+          fs.writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf-8');
         }
-        const existing = getSharedOrders();
-        const map = new Map(existing.map((o) => [o.id, o]));
-        map.set(order.id, order);
-        const list = Array.from(map.values());
-        fs.writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf-8');
       }
     } catch {
-      // Fallback silently
+      // Fallback silently to in-memory store
     }
   }
 }

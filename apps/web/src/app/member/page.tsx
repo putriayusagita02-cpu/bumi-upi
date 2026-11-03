@@ -84,9 +84,69 @@ export default function MemberPage() {
     }
   };
 
+  // Dynamic transaction history state
+  const [historyOrders, setHistoryOrders] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const fetchHistory = async () => {
+    try {
+      setHistoryLoading(true);
+      let serverOrders: any[] = [];
+      try {
+        const res = await fetch(`/api/orders?customerId=${customer?.id || ''}`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.orders)) {
+          serverOrders = data.orders;
+        }
+      } catch (e) {
+        console.warn('Failed to fetch history from server', e);
+      }
+
+      // Ambil juga pesanan tersimpan di browser localStorage agar transaksi terkini langsung tampil
+      let localOrders: any[] = [];
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem('bumi_upi_client_orders');
+          if (raw) localOrders = JSON.parse(raw);
+        } catch {}
+      }
+
+      const mergedMap = new Map();
+      for (const ord of serverOrders) {
+        mergedMap.set(ord.id, ord);
+      }
+      for (const ord of localOrders) {
+        if (!mergedMap.has(ord.id)) {
+          mergedMap.set(ord.id, ord);
+        } else {
+          // Gunakan status terbaru dari lokal jika ada pembaruan simulasi
+          const prev = mergedMap.get(ord.id);
+          mergedMap.set(ord.id, { ...prev, ...ord });
+        }
+      }
+
+      const list = Array.from(mergedMap.values()).sort(
+        (a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+      );
+
+      setHistoryOrders(list);
+    } catch (e) {
+      console.warn('Failed to compile history', e);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+    // Auto-refresh riwayat setiap 5 detik agar otomatis terbarui saat status berubah
+    const interval = setInterval(fetchHistory, 5000);
+    return () => clearInterval(interval);
+  }, [customer?.id, activeTab]);
+
   const vouchers = MOCK_VOUCHERS;
 
-  // Mock transaction history
+  // Fallback initial transaction history
   const history = [
     {
       id: 'tx-001',
@@ -348,24 +408,94 @@ export default function MemberPage() {
         {/* Tab 2: History */}
         {activeTab === 'history' && (
           <div className="bg-[#FBF7EE] border border-[#E8DCC2] rounded-2xl overflow-hidden shadow-2xs">
+            <div className="p-3 bg-[#EFE7D5]/70 border-b border-[#E8DCC2] flex items-center justify-between text-xs">
+              <span className="font-semibold text-[#634E3F]">
+                Total: {historyOrders.length > 0 ? historyOrders.length : history.length} Transaksi Tercatat
+              </span>
+              <button
+                type="button"
+                onClick={fetchHistory}
+                disabled={historyLoading}
+                className="text-[11px] font-bold text-[#B4532A] hover:underline flex items-center gap-1"
+              >
+                <span>🔄</span>
+                <span>{historyLoading ? 'Memuat...' : 'Segarkan Riwayat'}</span>
+              </button>
+            </div>
+
             <div className="divide-y divide-[#E8DCC2]/60">
-              {history.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="p-4 flex items-center justify-between text-xs hover:bg-[#F5EEDC]/40 transition-colors"
-                >
-                  <div className="space-y-0.5">
-                    <p className="font-semibold text-[#2B2625]">{tx.items}</p>
-                    <p className="text-[11px] text-[#8C7767]">{tx.date} • Kasir Bale Garut</p>
+              {historyOrders.length > 0 ? (
+                historyOrders.map((ord) => {
+                  const itemsSummary = Array.isArray(ord.items)
+                    ? ord.items.map((it: any) => `${it.quantity}x ${it.itemName || it.name}`).join(', ')
+                    : 'Pesanan Meja';
+                  const dateStr = ord.createdAt
+                    ? new Date(ord.createdAt).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      }) + ' WIB'
+                    : 'Baru saja';
+
+                  const statusBadge: Record<string, { label: string; color: string }> = {
+                    confirmed: { label: 'Terkonfirmasi', color: 'bg-blue-100 text-blue-800' },
+                    preparing: { label: 'Sedang Dimasak', color: 'bg-amber-100 text-amber-800' },
+                    ready: { label: 'Siap Diantar', color: 'bg-emerald-100 text-emerald-800' },
+                    completed: { label: 'Selesai', color: 'bg-[#E4EADF] text-[#3E4F30]' },
+                  };
+                  const currentBadge = statusBadge[ord.status] || { label: ord.status, color: 'bg-gray-100 text-gray-800' };
+
+                  return (
+                    <div
+                      key={ord.id}
+                      className="p-4 flex items-center justify-between text-xs hover:bg-[#F5EEDC]/40 transition-colors"
+                    >
+                      <div className="space-y-1 max-w-[65%]">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-[11px] text-[#3E4F30]">
+                            {ord.orderNumber || ord.id}
+                          </span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full ${currentBadge.color}`}>
+                            {currentBadge.label}
+                          </span>
+                        </div>
+                        <p className="font-semibold text-[#2B2625] truncate">{itemsSummary}</p>
+                        <p className="text-[10px] text-[#8C7767]">
+                          {dateStr} • {ord.tableNumber || 'Meja'} • {ord.paymentMethod?.toUpperCase()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-mono font-bold text-[#2B2625]">
+                          Rp {(ord.finalAmount || 0).toLocaleString('id-ID')}
+                        </p>
+                        <p className="text-[11px] font-bold text-[#3E4F30]">
+                          +{ord.pointsEarned || 0} Poin
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                history.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="p-4 flex items-center justify-between text-xs hover:bg-[#F5EEDC]/40 transition-colors"
+                  >
+                    <div className="space-y-0.5">
+                      <p className="font-semibold text-[#2B2625]">{tx.items}</p>
+                      <p className="text-[11px] text-[#8C7767]">{tx.date} • Kasir Bale Garut</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-mono font-bold text-[#2B2625]">
+                        Rp {tx.amount.toLocaleString('id-ID')}
+                      </p>
+                      <p className="text-[11px] font-bold text-[#3E4F30]">+{tx.points} Poin</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-mono font-bold text-[#2B2625]">
-                      Rp {tx.amount.toLocaleString('id-ID')}
-                    </p>
-                    <p className="text-[11px] font-bold text-[#3E4F30]">+{tx.points} Poin</p>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}

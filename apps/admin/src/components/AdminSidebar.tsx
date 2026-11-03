@@ -60,18 +60,18 @@ const NAV_ITEMS: NavItem[] = [
   }
 ];
 
-export function AdminSidebar() {
+function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
   const pathname = usePathname();
   const { user } = useAuth();
 
   return (
-    <aside className="w-64 bg-olive text-krem-light flex-shrink-0 flex flex-col justify-between min-h-screen border-r border-olive-700 shadow-lg">
+    <div className="flex flex-col justify-between h-full overflow-y-auto">
       <div>
         {/* Brand header with Official Logo */}
         <div className="p-4 border-b border-olive-600 bg-olive-800/80">
-          <Link href="/pos" className="block group">
+          <Link href="/pos" onClick={onItemClick} className="block group">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-[#3E4F30] p-1 flex items-center justify-center shadow-md border border-[#D4A24C]/60 flex-shrink-0 overflow-hidden">
+              <div className="h-11 w-11 rounded-xl bg-[#3E4F30] p-1 flex items-center justify-center shadow-md border border-[#D4A24C]/60 flex-shrink-0 overflow-hidden">
                 <img
                   src="/brand/Logo_bumi_upi.svg"
                   alt="Logo Resmi Bumi Upi"
@@ -105,6 +105,7 @@ export function AdminSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onItemClick}
                 className={`flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
                   isActive
                     ? 'bg-krem text-olive-900 font-bold shadow-md'
@@ -138,7 +139,7 @@ export function AdminSidebar() {
       <div className="p-3 m-3 space-y-3">
         {/* External Customer Portal Link */}
         <a
-          href="http://localhost:3000"
+          href="/"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-olive-700/60 hover:bg-olive-600 border border-olive-600/60 text-xs text-krem transition group"
@@ -147,7 +148,7 @@ export function AdminSidebar() {
             <ExternalLink className="w-3.5 h-3.5 text-mustard" />
             <span>Portal Pelanggan</span>
           </div>
-          <span className="text-[10px] text-krem/70 font-mono group-hover:text-white">Port 3000 ↗</span>
+          <span className="text-[10px] text-krem/70 font-mono group-hover:text-white">Buka ↗</span>
         </a>
 
         {/* Telegram Live Struk Info */}
@@ -166,6 +167,46 @@ export function AdminSidebar() {
           </p>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+}
+
+export function AdminSidebar({
+  isOpen = false,
+  onClose
+}: {
+  isOpen?: boolean;
+  onClose?: () => void;
+}) {
+  return (
+    <>
+      {/* 1. Desktop Persistent Sidebar (Hidden on mobile) */}
+      <aside className="hidden md:flex w-64 bg-olive text-krem-light flex-shrink-0 flex-col justify-between min-h-screen border-r border-olive-700 shadow-lg">
+        <SidebarInner />
+      </aside>
+
+      {/* 2. Mobile Drawer Overlay (Active when isOpen on mobile) */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            onClick={onClose}
+          />
+          <aside className="relative z-10 w-72 max-w-[80vw] bg-olive text-krem-light flex flex-col justify-between min-h-screen shadow-2xl">
+            <div className="flex items-center justify-between p-3.5 border-b border-olive-600 bg-olive-900/90">
+              <span className="font-serif font-bold text-sm text-krem">Navigasi Manajemen Staf</span>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-8 h-8 rounded-lg bg-white/10 text-krem flex items-center justify-center text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            <SidebarInner onItemClick={onClose} />
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

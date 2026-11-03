@@ -106,11 +106,42 @@ export default function CheckoutPage() {
         addPoints(data.pointsEarned);
       }
 
+      const orderId = data.orderId || data.order?.id;
+      const orderRecord = data.order || {
+        id: orderId,
+        orderNumber: data.orderNumber || `BU-ORD-${orderId}`,
+        customerId: customer?.id || null,
+        orderType,
+        tableNumber: orderType === 'dine_in' ? tableNumber : 'Takeaway',
+        status: 'confirmed',
+        subtotal,
+        discountAmount,
+        finalAmount: data.finalAmount || totalAmount,
+        pointsEarned: data.pointsEarned || 0,
+        paymentMethod: 'qris',
+        paymentStatus: 'paid',
+        items: payload.items,
+        notes: payload.notes,
+        createdAt: new Date().toISOString()
+      };
+
+      // Simpan ke localStorage agar riwayat member dan pelacakan order selalu sinkron & instan
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem('bumi_upi_client_orders');
+          const list = raw ? JSON.parse(raw) : [];
+          const map = new Map(list.map((o: any) => [o.id, o]));
+          map.set(orderRecord.id, orderRecord);
+          localStorage.setItem('bumi_upi_client_orders', JSON.stringify(Array.from(map.values())));
+        } catch (e) {
+          console.warn('Failed to save order to localStorage', e);
+        }
+      }
+
       // Clear cart
       clearCart();
 
       // Navigate to order tracker
-      const orderId = data.orderId || data.order?.id;
       router.push(`/order/${orderId}`);
     } catch (err: any) {
       setErrorMsg(err.message || 'Terjadi gangguan jaringan.');
