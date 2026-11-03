@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ToastProvider } from '@bumi-upi/ui';
+import { ToastProvider } from './ui/Toast';
 import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 

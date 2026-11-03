@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
 import { MOCK_VOUCHERS } from '../../lib/catalogData';
-import { MemberCard } from '@bumi-upi/ui';
+import { MemberCard } from '../../components/ui/MemberCard';
 import { SuratRinduModal } from '../../components/SuratRinduModal';
 import { Ticket, Clock, CheckCircle2, ShoppingBag, ArrowRight, User } from '../../components/icons';
 
