@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+  <defs>
+    <style>
+      .tile-bg { fill: #F5EEDC; }
+      .tile-line-olive { stroke: #3E4F30; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .tile-line-mustard { stroke: #D4A24C; stroke-width: 1.2; fill: none; }
+      .tile-fill-olive { fill: #3E4F30; }
+      .tile-fill-mustard { fill: #D4A24C; }
+      .tile-fill-terracotta { fill: #B4532A; }
+    </style>
+  </defs>
+  <!-- Latar Tegel Nostalgia Garut -->
+  <rect width="80" height="80" class="tile-bg" />
+  
+  <!-- Motif Bunga Klasik Tegel Kunci 1930-an -->
+  <rect x="2" y="2" width="76" height="76" fill="none" stroke="#D4A24C" stroke-width="1" opacity="0.4" />
+  <rect x="6" y="6" width="68" height="68" fill="none" stroke="#3E4F30" stroke-width="0.8" opacity="0.3" />
+
+  <!-- Pusat Ornamen -->
+  <circle cx="40" cy="40" r="14" fill="none" stroke="#3E4F30" stroke-width="1.5" />
+  <circle cx="40" cy="40" r="10" fill="#D4A24C" fill-opacity="0.25" stroke="#B4532A" stroke-width="1" />
+  <circle cx="40" cy="40" r="4" fill="#3E4F30" />
+
+  <!-- 4 Kelopak Arah Mata Angin -->
+  <!-- Atas -->
+  <path d="M40 26 C36 14, 44 14, 40 6 C36 14, 44 14, 40 26 Z" fill="#3E4F30" fill-opacity="0.8" />
+  <circle cx="40" cy="10" r="2" fill="#D4A24C" />
+  
+  <!-- Bawah -->
+  <path d="M40 54 C36 66, 44 66, 40 74 C36 66, 44 66, 40 54 Z" fill="#3E4F30" fill-opacity="0.8" />
+  <circle cx="40" cy="70" r="2" fill="#D4A24C" />
+
+  <!-- Kiri -->
+  <path d="M26 40 C14 36, 14 44, 6 40 C14 36, 14 44, 26 40 Z" fill="#3E4F30" fill-opacity="0.8" />
+  <circle cx="10" cy="40" r="2" fill="#D4A24C" />
+
+  <!-- Kanan -->
+  <path d="M54 40 C66 36, 66 44, 74 40 C66 36, 66 44, 54 40 Z" fill="#3E4F30" fill-opacity="0.8" />
+  <circle cx="70" cy="40" r="2" fill="#D4A24C" />
+
+  <!-- Sudut Melengkung Klasik -->
+  <path d="M0 16 C8 16, 16 8, 16 0" class="tile-line-olive" opacity="0.6" />
+  <path d="M80 16 C72 16, 64 8, 64 0" class="tile-line-olive" opacity="0.6" />
+  <path d="M0 64 C8 64, 16 72, 16 80" class="tile-line-olive" opacity="0.6" />
+  <path d="M80 64 C72 64, 64 72, 64 80" class="tile-line-olive" opacity="0.6" />
+</svg>

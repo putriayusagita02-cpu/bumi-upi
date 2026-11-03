@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <defs>
+    <!-- Mangkuk Motif Ayam Jago Tradisional -->
+    <g id="icon-mangkuk-ayam">
+      <!-- Bentuk Mangkuk Porselen Krem -->
+      <path d="M 6 18 Q 25 46 50 46 Q 75 46 94 18 Q 80 15 50 15 Q 20 15 6 18 Z" fill="#FBF7EE" stroke="#3E4F30" stroke-width="2.5" stroke-linejoin="round"/>
+      <ellipse cx="50" cy="18" rx="44" ry="7" fill="none" stroke="#3E4F30" stroke-width="2"/>
+      <path d="M 32 46 L 30 52 L 70 52 L 68 46" fill="#F5EEDC" stroke="#3E4F30" stroke-width="2"/>
+      <!-- Motif Ayam Jago Merah Terakota & Hitam -->
+      <path d="M 46 32 C 43 27, 49 24, 52 26 C 54 23, 56 25, 55 28 C 58 29, 56 34, 51 35 C 47 36, 45 35, 46 32 Z" fill="#B4532A" />
+      <path d="M 52 27 L 55 27.5 L 52 29" stroke="#D4A24C" stroke-width="1.2" fill="#D4A24C"/>
+      <circle cx="50" cy="27" r="0.8" fill="#3B2A1E"/>
+      <!-- Ekor Lengkung Hitam -->
+      <path d="M 43 32 Q 38 29 36 33 Q 39 34 43 35" fill="none" stroke="#3B2A1E" stroke-width="1.8"/>
+      <!-- Daun Bunga Peony Tradisional -->
+      <path d="M 62 30 C 65 28, 68 31, 65 34 C 62 33, 61 31, 62 30 Z" fill="#8A8F5F"/>
+    </g>
+
+    <!-- Teko Enamel Blur & Kayu -->
+    <g id="icon-teko-enamel">
+      <!-- Badan Teko -->
+      <path d="M 25 50 C 20 50, 18 30, 26 22 L 54 22 C 62 30, 60 50, 55 50 Z" fill="#FBF7EE" stroke="#3E4F30" stroke-width="2.5" stroke-linejoin="round"/>
+      <!-- Tutup Teko -->
+      <ellipse cx="40" cy="22" rx="14" ry="4" fill="#3E4F30"/>
+      <circle cx="40" cy="16" r="3" fill="#D4A24C" stroke="#3E4F30" stroke-width="1.5"/>
+      <path d="M 40 19 L 40 16" stroke="#3E4F30" stroke-width="2"/>
+      <!-- Corong Teko -->
+      <path d="M 23 36 C 14 34, 12 26, 14 22 C 16 22, 18 26, 24 30" fill="#FBF7EE" stroke="#3E4F30" stroke-width="2.2" stroke-linejoin="round"/>
+      <!-- Gagang Lengkung -->
+      <path d="M 54 26 C 66 26, 66 44, 54 44" fill="none" stroke="#B4532A" stroke-width="3" stroke-linecap="round"/>
+      <!-- Uap Panas Tulisan Tangan -->
+      <path d="M 14 18 Q 12 14 15 11 Q 18 8 16 5" fill="none" stroke="#D4A24C" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2 2"/>
+    </g>
+
+    <!-- Jendela Krepyak Kayu Biru Antik Garut -->
+    <g id="icon-jendela-krepyak">
+      <!-- Kusen Luar Kayu Tua -->
+      <rect x="10" y="8" width="60" height="70" rx="3" fill="#F5EEDC" stroke="#3B2A1E" stroke-width="3"/>
+      <!-- Daun Pintu Kiri Krepyak Biru Antik -->
+      <rect x="14" y="12" width="24" height="62" fill="#5B7A82" fill-opacity="0.25" stroke="#3B2A1E" stroke-width="1.8"/>
+      <!-- Bilah-bilah Krepyak Kiri -->
+      <line x1="16" y1="20" x2="36" y2="22" stroke="#3B2A1E" stroke-width="1.5"/>
+      <line x1="16" y1="28" x2="36" y2="30" stroke="#3B2A1E" stroke-width="1.5"/>
+      <line x1="16" y1="36" x2="36" y2="38" stroke="#3B2A1E" stroke-width="1.5"/>
+      <line x1="16" y1="44" x2="36" y2="46" stroke="#3B2A1E" stroke-width="1.5"/>
+      <line x1="16" y1="52" x2="36" y2="54" stroke="#3B2A1E" stroke-width="1.5"/>
+      <line x1="16" y1="60" x2="36" y2="62" stroke="#3B2A1E" stroke-width="1.5"/>
+      <!-- Daun Pintu Kanan Krepyak -->
+      <rect x="42" y="12" width="24" height="62" fill="#5B7A82" fill-opacity="0.25" stroke="#3B2A1E" stroke-width="1.8"/>
+      <line x1="44" y1="20" x2="64" y2="22" stroke="#3B2A1E" stroke-width="1.5"/>
+      <line x1="44" y1="28" x2="64" y2="30" stroke="#3B2A1E" stroke-width="1.5"/>
+      <line x1="44" y1="36" x2="64" y2="38" stroke="#3B2A1E" stroke-width="1.5"/>
+      <line x1="44" y1="44" x2="64" y2="46" stroke="#3B2A1E" stroke-width="1.5"/>
+      <line x1="44" y1="52" x2="64" y2="54" stroke="#3B2A1E" stroke-width="1.5"/>
+      <line x1="44" y1="60" x2="64" y2="62" stroke="#3B2A1E" stroke-width="1.5"/>
+      <!-- Selot Besi Antik -->
+      <circle cx="39" cy="43" r="2" fill="#D4A24C" stroke="#3B2A1E" stroke-width="1"/>
+      <line x1="37" y1="43" x2="43" y2="43" stroke="#3B2A1E" stroke-width="2"/>
+    </g>
+  </defs>
+</svg>

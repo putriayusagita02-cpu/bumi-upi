@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --olive: #3E4F30;
+  --krem: #F5EEDC;
+  --krem-surface: #FBF7EE;
+  --terakota: #B4532A;
+  --mustard: #D4A24C;
+  --cokelat: #3B2A1E;
+  --sage: #8A8F5F;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background-color: var(--krem);
+  color: var(--cokelat);
+  background-image: radial-gradient(rgba(59, 42, 30, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+.font-serif {
+  font-family: 'Fraunces', Georgia, serif;
+}
+
+.font-caveat {
+  font-family: 'Caveat', cursive;
+}
+
+.bg-tegel {
+  background-image: url('/brand/tegel-pattern.svg');
+  background-repeat: repeat;
+  background-size: 60px 60px;
+}
+
+.rounded-vintage {
+  border-radius: 1.5rem 0.5rem 1.5rem 0.5rem;
+}
+
+.rounded-card-vintage {
+  border-radius: 1.25rem;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5EEDC;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C7D4BF;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3E4F30;
+}

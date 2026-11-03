@@ -1,0 +1,18 @@
+{
+  "name": "Bumi Upi — Rumah Tamah CRM",
+  "short_name": "Bumi Upi",
+  "description": "Sejauh apapun pergi, rumah tempatnya pulang. Sistem loyalitas & reservasi Rumah Tamah Bumi Upi Garut.",
+  "start_url": "/customer",
+  "display": "standalone",
+  "background_color": "#F5EEDC",
+  "theme_color": "#3E4F30",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/brand/Logo_bumi_upi.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

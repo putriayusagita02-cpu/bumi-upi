@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bumi Upi — Rumah Tamah Garut (Sistem CRM)</title>
+  <meta name="description" content="Sejauh apapun pergi, rumah tempatnya pulang. Sistem CRM & Loyalitas Pelanggan Rumah Tamah Bumi Upi Garut.">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3E4F30">
+
+  <!-- Google Fonts: Fraunces (Vintage Serif), Plus Jakarta Sans (UI Clean), Caveat (Handwriting) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            olive: {
+              DEFAULT: '#3E4F30',
+              50: '#F4F6F2',
+              100: '#E4EADF',
+              200: '#C7D4BF',
+              300: '#A4BC98',
+              400: '#6C885B',
+              500: '#3E4F30', // Logo Background
+              600: '#344328',
+              700: '#2A3620',
+              800: '#212A19',
+              900: '#171D11',
+            },
+            krem: {
+              DEFAULT: '#F5EEDC', // Kertas Utama
+              surface: '#FBF7EE', // Kartu
+              border: '#E8DCC2',
+              dark: '#E0D4BA',
+            },
+            terakota: {
+              DEFAULT: '#B4532A', // CTA Aksen
+              light: '#CE6C41',
+              dark: '#93401E',
+              hover: '#9E4520',
+            },
+            mustard: {
+              DEFAULT: '#D4A24C', // Poin & Badge
+              light: '#E2BA70',
+              dark: '#B88632',
+            },
+            cokelat: {
+              DEFAULT: '#3B2A1E', // Teks
+              muted: '#634E3F',
+              subtle: '#8C7767',
+            },
+            sage: {
+              DEFAULT: '#8A8F5F', // Status Positif
+              light: '#A5AA7E',
+              dark: '#6E7247',
+            }
+          },
+          fontFamily: {
+            serif: ['Fraunces', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            handwriting: ['Caveat', 'cursive'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background-color: #F5EEDC;
+      color: #3B2A1E;
+      background-image: radial-gradient(rgba(59, 42, 30, 0.04) 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+
+    .font-fraunces {
+      font-family: 'Fraunces', Georgia, serif;
+    }
+
+    .font-caveat {
+      font-family: 'Caveat', cursive;
+    }
+
+    /* Tegel Pattern SVG Background */
+    .bg-tegel {
+      background-image: url('/brand/tegel-pattern.svg');
+      background-repeat: repeat;
+      background-size: 60px 60px;
+    }
+
+    /* Asymmetric vintage corner radius */
+    .rounded-vintage {
+      border-radius: 1.5rem 0.5rem 1.5rem 0.5rem;
+    }
+
+    .rounded-card-vintage {
+      border-radius: 1.25rem;
+    }
+
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #F5EEDC; }
+    ::-webkit-scrollbar-thumb { background: #C7D4BF; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3E4F30; }
+
+    /* Touch tactile active states */
+    button:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-terakota selection:text-white">
+
+  <!-- TOP DATA SIMULATION BANNER (WAJIB PART 11) -->
+  <aside id="simulation-banner" class="bg-[#3E4F30] text-[#F5EEDC] px-4 py-2 text-xs sm:text-sm font-medium border-b border-mustard/40 sticky top-0 z-50 flex items-center justify-between shadow-sm">
+    <div class="flex items-center space-x-2">
+      <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-mustard text-cokelat font-bold text-[10px]">!</span>
+      <span><strong>DATA SIMULASI:</strong> Ini adalah proyek studi kasus CRM Rumah Tamah Bumi Upi Garut, bukan situs resmi.</span>
+    </div>
+    <div class="flex items-center space-x-3 text-xs">
+      <span class="hidden md:inline text-[#C7D4BF]">WIB (Asia/Jakarta, UTC+7)</span>
+      <button onclick="toggleBotModal()" class="bg-mustard hover:bg-mustard-dark text-cokelat font-bold px-2.5 py-1 rounded transition flex items-center space-x-1">
+        <i data-lucide="send" class="w-3 h-3"></i>
+        <span>Simulator Telegram Bot</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- NAVIGATION HEADER -->
+  <header id="main-header" class="bg-krem-surface/95 backdrop-blur border-b border-krem-border sticky top-9 z-40 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-2.5 flex items-center justify-between">
+      
+      <!-- Brand Logo Wordmark -->
+      <a href="#landing" onclick="navigateTo('landing')" class="flex items-center space-x-3 cursor-pointer group">
+        <img src="/brand/Logo_bumi_upi.svg" alt="Bumi Upi Rumah Tamah" class="h-11 sm:h-12 w-auto object-contain transition group-hover:opacity-90">
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <nav class="hidden lg:flex items-center space-x-8 text-sm font-semibold text-cokelat">
+        <a href="#cerita" onclick="navigateTo('landing', 'cerita')" class="hover:text-terakota transition">Cerita Bumi</a>
+        <a href="#menu" onclick="navigateTo('landing', 'menu')" class="hover:text-terakota transition">Menu Masakan</a>
+        <a href="#event" onclick="navigateTo('landing', 'event')" class="hover:text-terakota transition">Event & Nobar</a>
+        <a href="#keluarga-bumi" onclick="navigateTo('landing', 'keluarga-bumi')" class="hover:text-terakota transition flex items-center space-x-1">
+          <span>Keluarga Bumi</span>
+          <span class="bg-mustard/20 text-mustard-dark text-[10px] px-1.5 py-0.5 rounded-full font-bold">Loyalitas</span>
+        </a>
+        <a href="#lokasi" onclick="navigateTo('landing', 'lokasi')" class="hover:text-terakota transition">Lokasi & Jam</a>
+        <a href="#faq" onclick="navigateTo('landing', 'faq')" class="hover:text-terakota transition">Tanya Jawab</a>
+      </nav>
+
+      <!-- Right Header Actions (Auth & Switch Role) -->
+      <div class="flex items-center space-x-3">
+        <!-- Current User Status Indicator -->
+        <div id="user-badge-container" class="hidden sm:flex items-center space-x-2 bg-krem px-3 py-1.5 rounded-full border border-krem-border text-xs font-semibold">
+          <span id="user-badge-role" class="w-2 h-2 rounded-full bg-sage"></span>
+          <span id="user-badge-name" class="truncate max-w-[120px]">Tamu</span>
+        </div>
+
+        <!-- Quick Route Switcher -->
+        <div class="relative">
+          <button id="nav-dropdown-btn" onclick="toggleNavDropdown()" class="bg-krem-surface border border-krem-border hover:border-olive text-cokelat px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition">
+            <i data-lucide="layout-grid" class="w-4 h-4 text-olive"></i>
+            <span id="current-view-label">Pilih Halaman</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-cokelat-subtle"></i>
+          </button>
+          
+          <div id="nav-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-krem-surface border border-krem-border rounded-xl shadow-warm-lg py-2 z-50 text-xs font-medium">
+            <div class="px-3 py-1 text-[10px] uppercase font-bold text-cokelat-subtle tracking-wider">Tampilan Utama</div>
+            <button onclick="navigateTo('landing')" class="w-full text-left px-3 py-2 hover:bg-krem flex items-center space-x-2">
+              <i data-lucide="home" class="w-4 h-4 text-olive"></i>
+              <span>Landing Page Editorial</span>
+            </button>
+            <button onclick="navigateTo('customer')" class="w-full text-left px-3 py-2 hover:bg-krem flex items-center space-x-2">
+              <i data-lucide="smartphone" class="w-4 h-4 text-terakota"></i>
+              <span>Customer PWA (Member)</span>
+            </button>
+            
+            <div class="my-1 border-t border-krem-border"></div>
+            <div class="px-3 py-1 text-[10px] uppercase font-bold text-cokelat-subtle tracking-wider">Tampilan Staf & Admin</div>
+            <button onclick="navigateTo('admin-pos')" class="w-full text-left px-3 py-2 hover:bg-krem flex items-center space-x-2">
+              <i data-lucide="receipt" class="w-4 h-4 text-mustard-dark"></i>
+              <span>Kasir POS (Tablet Input)</span>
+            </button>
+            <button onclick="navigateTo('admin-dashboard')" class="w-full text-left px-3 py-2 hover:bg-krem flex items-center space-x-2">
+              <i data-lucide="bar-chart-3" class="w-4 h-4 text-olive"></i>
+              <span>Admin Dashboard (Ringkasan)</span>
+            </button>
+            <button onclick="navigateTo('admin-rfm')" class="w-full text-left px-3 py-2 hover:bg-krem flex items-center space-x-2">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-sage-dark"></i>
+              <span>Segmentasi RFM & CLV</span>
+            </button>
+            <button onclick="navigateTo('admin-peta')" class="w-full text-left px-3 py-2 hover:bg-krem flex items-center space-x-2">
+              <i data-lucide="map" class="w-4 h-4 text-terakota"></i>
+              <span>Peta Konsep CRM (Akademik)</span>
+            </button>
+
+            <div class="my-1 border-t border-krem-border"></div>
+            <button onclick="navigateTo('auth')" class="w-full text-left px-3 py-2 hover:bg-krem flex items-center space-x-2 text-terakota font-bold">
+              <i data-lucide="log-in" class="w-4 h-4"></i>
+              <span>Ganti Akun Demo / Login</span>
+            </button>
+          </div>
+        </div>
+
+        <button onclick="navigateTo('auth')" class="bg-terakota hover:bg-terakota-hover text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-lg shadow-sm transition flex items-center space-x-1.5">
+          <i data-lucide="user" class="w-4 h-4"></i>
+          <span id="auth-btn-label">Masuk</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main id="app-viewport" class="flex-grow">
+    <!-- Konten diinjeksi via script SPA di bawah -->
+  </main>
+
+  <!-- FLOATING UPI CHAT AI WIDGET -->
+  <div id="upi-chat-widget" class="fixed bottom-6 right-6 z-40">
+    <!-- Widget Button -->
+    <button onclick="toggleUpiChat()" class="bg-[#3E4F30] hover:bg-olive-600 text-[#F5EEDC] p-3.5 rounded-full shadow-warm-lg flex items-center space-x-2.5 border-2 border-mustard transition group">
+      <div class="relative">
+        <i data-lucide="sparkles" class="w-5 h-5 text-mustard animate-pulse"></i>
+      </div>
+      <span class="font-bold text-xs pr-1 font-serif hidden sm:inline">Tanya Upi Chat</span>
+    </button>
+
+    <!-- Chat Modal Window -->
+    <div id="upi-chat-window" class="hidden absolute bottom-14 right-0 w-[92vw] sm:w-96 max-w-sm bg-krem-surface border border-krem-border rounded-vintage shadow-warm-lg flex flex-col overflow-hidden z-50">
+      <!-- Chat Header -->
+      <div class="bg-olive p-4 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full bg-krem/20 flex items-center justify-center border border-mustard/40">
+            <span class="font-serif font-bold text-mustard text-lg">U</span>
+          </div>
+          <div>
+            <h4 class="font-serif font-bold text-sm tracking-wide">Upi Chat</h4>
+            <div class="flex items-center space-x-1.5 text-[11px] text-krem/80">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span>Tuan Rumah Digital • Aktif</span>
+            </div>
+          </div>
+        </div>
+        <button onclick="toggleUpiChat()" class="text-krem/70 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Provider Badge & Persona Notice -->
+      <div class="bg-mustard/15 px-3 py-1.5 border-b border-mustard/30 text-[10px] text-cokelat flex items-center justify-between">
+        <span>✨ Multi-Provider AI (Gemini / Offline Knowledge)</span>
+        <span class="font-caveat text-sm font-bold text-terakota">Ramah & Otentik</span>
+      </div>
+
+      <!-- Message History List -->
+      <div id="upi-chat-messages" class="p-4 space-y-3 h-80 overflow-y-auto text-xs bg-krem-surface">
+        <!-- Initial Message -->
+        <div class="flex items-start space-x-2">
+          <div class="w-6 h-6 rounded-full bg-olive text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">U</div>
+          <div class="bg-krem p-3 rounded-2xl rounded-tl-sm border border-krem-border max-w-[85%] text-cokelat space-y-1">
+            <p class="font-semibold text-[11px]">Sampurasun! Wilujeng sumping di Rumah Tamah Bumi Upi. 🏡</p>
+            <p>Saya Upi. Ada yang bisa saya bantu? Mau tanya jam buka (07:00-23:00 WIB), menu andalan nasi kecombrang, atau info reservasi?</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Suggested Prompts -->
+      <div class="px-3 py-2 bg-krem/40 border-t border-krem-border flex items-center space-x-1.5 overflow-x-auto text-[11px] whitespace-nowrap">
+        <button onclick="quickAsk('Jam buka Bumi Upi sampai jam berapa?')" class="bg-white border border-krem-border px-2.5 py-1 rounded-full text-cokelat hover:border-olive transition">⏰ Jam Buka</button>
+        <button onclick="quickAsk('Rekomendasi menu masakan terlaris apa saja?')" class="bg-white border border-krem-border px-2.5 py-1 rounded-full text-cokelat hover:border-olive transition">🍛 Menu Andalan</button>
+        <button onclick="quickAsk('Bagaimana cara mengumpulkan poin keluarga bumi?')" class="bg-white border border-krem-border px-2.5 py-1 rounded-full text-cokelat hover:border-olive transition">⭐ Info Poin</button>
+      </div>
+
+      <!-- Chat Input Field -->
+      <div class="p-3 bg-white border-t border-krem-border flex items-center space-x-2">
+        <input id="upi-chat-input" onkeydown="handleChatKey(event)" type="text" placeholder="Tanya Upi tentang menu, jam buka, promo..." class="flex-grow text-xs px-3 py-2 bg-krem/50 rounded-lg border border-krem-border focus:outline-none focus:border-terakota text-cokelat">
+        <button onclick="sendUpiMessage()" class="bg-terakota hover:bg-terakota-hover text-white p-2 rounded-lg transition">
+          <i data-lucide="send" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="px-3 py-1 bg-krem/20 text-center text-[10px] text-cokelat-subtle">
+        Butuh bantuan manusia? Hubungi <a href="https://wa.me/6281223344550" target="_blank" class="text-terakota underline font-bold">WhatsApp Admin</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERACTIVE TELEGRAM BOT SIMULATOR MODAL -->
+  <div id="telegram-bot-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#1C242B] border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[600px] text-slate-100">
+      <!-- Bot Header -->
+      <div class="bg-[#242D34] px-4 py-3 flex items-center justify-between border-b border-slate-700">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full bg-olive flex items-center justify-center font-bold text-white border border-mustard">
+            BU
+          </div>
+          <div>
+            <div class="font-bold text-sm flex items-center space-x-1.5">
+              <span>Bumi Upi Bot</span>
+              <span class="text-[10px] bg-sky-500/20 text-sky-400 px-1.5 py-0.2 rounded">Official</span>
+            </div>
+            <div class="text-[11px] text-slate-400">@BumiUpiBot • Webhook Idempotent Ready</div>
+          </div>
+        </div>
+        <button onclick="toggleBotModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Quick Command Buttons Bar -->
+      <div class="bg-[#182026] px-3 py-2 border-b border-slate-800 flex items-center space-x-1.5 overflow-x-auto text-xs whitespace-nowrap">
+        <button onclick="sendBotCommand('/poin')" class="bg-slate-700 hover:bg-slate-600 px-2.5 py-1 rounded-md text-amber-300 font-mono text-[11px]">/poin</button>
+        <button onclick="sendBotCommand('/voucher')" class="bg-slate-700 hover:bg-slate-600 px-2.5 py-1 rounded-md text-amber-300 font-mono text-[11px]">/voucher</button>
+        <button onclick="sendBotCommand('/riwayat')" class="bg-slate-700 hover:bg-slate-600 px-2.5 py-1 rounded-md text-amber-300 font-mono text-[11px]">/riwayat</button>
+        <button onclick="sendBotCommand('/menu')" class="bg-slate-700 hover:bg-slate-600 px-2.5 py-1 rounded-md text-amber-300 font-mono text-[11px]">/menu</button>
+        <button onclick="sendBotCommand('/reservasi')" class="bg-slate-700 hover:bg-slate-600 px-2.5 py-1 rounded-md text-amber-300 font-mono text-[11px]">/reservasi</button>
+        <button onclick="sendBotCommand('/ringkasan')" class="bg-slate-700 hover:bg-slate-600 px-2.5 py-1 rounded-md text-emerald-400 font-mono text-[11px]">[Staf] /ringkasan</button>
+        <button onclick="sendBotCommand('/keluhan')" class="bg-slate-700 hover:bg-slate-600 px-2.5 py-1 rounded-md text-rose-300 font-mono text-[11px]">[Staf] /keluhan</button>
+      </div>
+
+      <!-- Messages Window -->
+      <div id="bot-messages-container" class="flex-grow p-4 overflow-y-auto space-y-3 bg-[#0F1418] text-xs font-sans">
+        <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-700 max-w-[90%] text-slate-300">
+          <p class="font-bold text-amber-400 mb-1">🤖 Simulator Telegram Bot Bumi Upi</p>
+          <p>Anda dapat menguji semua perintah pelanggan maupun perintah staf secara langsung tanpa perlu koneksi ngrok eksternal. Semua balasan memakai format WIB resmi.</p>
+        </div>
+      </div>
+
+      <!-- Contact Verification Simulator Button -->
+      <div class="bg-[#141B20] px-4 py-2 border-t border-slate-800 flex items-center justify-between text-xs">
+        <span class="text-slate-400 text-[11px]">Uji Verifikasi Nomor HP:</span>
+        <button onclick="simulateContactShare()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1 rounded text-xs transition flex items-center space-x-1.5">
+          <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+          <span>Bagikan Kontak (request_contact)</span>
+        </button>
+      </div>
+
+      <!-- Bot Input Field -->
+      <div class="p-3 bg-[#242D34] flex items-center space-x-2">
+        <input id="bot-text-input" onkeydown="handleBotKey(event)" type="text" placeholder="Ketik perintah (cth: /poin, /voucher) atau chat biasa..." class="flex-grow bg-[#182026] text-white px-3 py-2 rounded-lg text-xs border border-slate-700 focus:outline-none focus:border-amber-400">
+        <button onclick="sendCustomBotMessage()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-3 py-2 rounded-lg transition">
+          <i data-lucide="send" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC & SPA ENGINE -->
+  <script src="/app.js"></script>
+</body>
+</html>

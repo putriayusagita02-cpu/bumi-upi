@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <!-- Tekstur ubin vintage subtle -->
+    <pattern id="tegel-mini" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect width="20" height="20" fill="#3E4F30" />
+      <path d="M0 10 L10 0 L20 10 L10 20 Z" fill="none" stroke="#485B38" stroke-width="0.8" opacity="0.6"/>
+      <circle cx="10" cy="10" r="1.5" fill="#485B38" opacity="0.8"/>
+    </pattern>
+    <!-- Lengkungan untuk teks bumi upi -->
+    <path id="archPath" d="M 50 68 Q 200 48 350 68" fill="none" />
+  </defs>
+
+  <!-- Background Hijau Olive Logo #3E4F30 dengan border vintage lembut -->
+  <rect width="400" height="120" rx="14" fill="#3E4F30"/>
+  <rect width="400" height="120" rx="14" fill="url(#tegel-mini)" opacity="0.45"/>
+  <rect x="4" y="4" width="392" height="112" rx="10" fill="none" stroke="#D4A24C" stroke-width="1.2" stroke-dasharray="4 2" opacity="0.75"/>
+
+  <!-- Ornamen Sudut Tradisional Tegel -->
+  <path d="M 12 18 L 18 12 M 12 12 L 22 12 M 12 12 L 12 22" stroke="#D4A24C" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
+  <path d="M 388 18 L 382 12 M 388 12 L 378 12 M 388 12 L 388 22" stroke="#D4A24C" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
+  <path d="M 12 102 L 18 108 M 12 108 L 22 108 M 12 108 L 12 98" stroke="#D4A24C" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
+  <path d="M 388 102 L 382 108 M 388 108 L 378 108 M 388 108 L 388 98" stroke="#D4A24C" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- Ikon Teko & Mangkuk Vintage Kecil di kiri -->
+  <g transform="translate(32, 42) scale(0.7)" stroke="#F5EEDC" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <!-- Teko Enamel -->
+    <path d="M 6 28 C 6 16, 26 16, 26 28 Z" fill="#F5EEDC" fill-opacity="0.15"/>
+    <path d="M 16 16 L 16 11 M 12 11 L 20 11"/>
+    <path d="M 26 20 C 32 20, 32 26, 26 26"/>
+    <path d="M 6 22 L 0 17"/>
+  </g>
+
+  <!-- Wordmark 'bumi upi' Melengkung Halus Berwarna Putih -->
+  <text font-family="'Fraunces', Georgia, serif" font-size="34" font-weight="700" fill="#FFFFFF" letter-spacing="1">
+    <textPath href="#archPath" startOffset="50%" text-anchor="middle">bumi upi</textPath>
+  </text>
+
+  <!-- Garis Pemisah Vintage -->
+  <line x1="110" y1="84" x2="160" y2="84" stroke="#D4A24C" stroke-width="1.2" opacity="0.8"/>
+  <circle cx="200" cy="84" r="2.5" fill="#D4A24C"/>
+  <line x1="240" y1="84" x2="290" y2="84" stroke="#D4A24C" stroke-width="1.2" opacity="0.8"/>
+
+  <!-- Sub-teks 'RUMAH TAMAH' Huruf Kapital Kecil Bersih -->
+  <text x="200" y="103" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="11" font-weight="700" fill="#F5EEDC" letter-spacing="4.5" text-anchor="middle" opacity="0.95">
+    RUMAH TAMAH
+  </text>
+</svg>

@@ -1,0 +1,124 @@
+/**
+ * Rumah Tamah Bumi Upi — Design System CSS Tokens
+ * "Rumah Nenek Sunda" Aesthetics (Garut Heritage)
+ */
+
+:root {
+  /* Colors */
+  --color-olive-50: #F4F6F2;
+  --color-olive-100: #E4EADF;
+  --color-olive-200: #C7D4BF;
+  --color-olive-300: #A4BC98;
+  --color-olive-400: #6C885B;
+  --color-olive-500: #3E4F30;
+  --color-olive-600: #344328;
+  --color-olive-700: #2A3620;
+  --color-olive-800: #212A19;
+  --color-olive-900: #171D11;
+  --color-olive-default: #3E4F30;
+
+  --color-krem-default: #F5EEDC;
+  --color-krem-surface: #FBF7EE;
+  --color-krem-border: #E8DCC2;
+  --color-krem-dark: #E0D4BA;
+  --color-krem-light: #FCF9F2;
+
+  --color-terakota-default: #B4532A;
+  --color-terakota-light: #CE6C41;
+  --color-terakota-dark: #93401E;
+  --color-terakota-hover: #9E4520;
+  --color-terakota-50: #FDF4F0;
+  --color-terakota-100: #FCE7DF;
+
+  --color-mustard-default: #D4A24C;
+  --color-mustard-light: #E2BA70;
+  --color-mustard-dark: #B88632;
+  --color-mustard-50: #FBF7EE;
+  --color-mustard-100: #F8EECF;
+
+  --color-kopi-default: #2B2625;
+  --color-kopi-light: #3B2A1E;
+  --color-kopi-muted: #634E3F;
+  --color-kopi-subtle: #8C7767;
+
+  --color-sage-default: #8A8F5F;
+  --color-sage-light: #A5AA7E;
+  --color-sage-dark: #6E7247;
+
+  /* Typography */
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-handwriting: 'Caveat', cursive;
+
+  /* Border Radii */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-vintage: 1.25rem;
+  --radius-vintage-asym: 1.75rem 0.5rem 1.75rem 0.5rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-warm: 0 4px 20px -2px rgba(59, 42, 30, 0.08), 0 2px 6px -1px rgba(59, 42, 30, 0.04);
+  --shadow-warm-lg: 0 10px 30px -4px rgba(59, 42, 30, 0.12), 0 4px 12px -2px rgba(59, 42, 30, 0.06);
+}
+
+/* Heritage Motif & Utilities */
+.bg-heritage-krem {
+  background-color: var(--color-krem-default);
+}
+
+.bg-heritage-olive {
+  background-color: var(--color-olive-default);
+  color: var(--color-krem-default);
+}
+
+.bg-heritage-terakota {
+  background-color: var(--color-terakota-default);
+  color: #FFFFFF;
+}
+
+.bg-heritage-surface {
+  background-color: var(--color-krem-surface);
+}
+
+.text-heritage-kopi {
+  color: var(--color-kopi-default);
+}
+
+.text-heritage-olive {
+  color: var(--color-olive-default);
+}
+
+.text-heritage-terakota {
+  color: var(--color-terakota-default);
+}
+
+.border-heritage-krem {
+  border-color: var(--color-krem-border);
+}
+
+.font-serif-heritage {
+  font-family: var(--font-serif);
+}
+
+.font-sans-heritage {
+  font-family: var(--font-sans);
+}
+
+.font-handwriting-heritage {
+  font-family: var(--font-handwriting);
+}
+
+.rounded-vintage {
+  border-radius: var(--radius-vintage);
+}
+
+.shadow-warm {
+  box-shadow: var(--shadow-warm);
+}
+
+.shadow-warm-lg {
+  box-shadow: var(--shadow-warm-lg);
+}

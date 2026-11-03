@@ -1,0 +1,358 @@
+diff --git a/packages/ui/src/components/MemberCard.tsx b/packages/ui/src/components/MemberCard.tsx
+index 470e86b..7a53239 100644
+--- a/packages/ui/src/components/MemberCard.tsx
++++ b/packages/ui/src/components/MemberCard.tsx
+@@ -66,15 +66,18 @@ export const MemberCard: React.FC<MemberCardProps> = ({
+ 
+   const config = tierConfig[tier] || tierConfig.Sahabat;
+ 
++  // Defensive points normalization (guard against null / undefined from API / DB)
++  const safePoints = points ?? 0;
++
+   // Progress calculation
+   let progressPercentage = 100;
+   let progressText = 'Tier Tertinggi';
+   if (config.nextTier) {
+     const currentBase = tier === 'Sahabat' ? 100 : 0;
+     const range = config.nextTier.target - currentBase;
+-    const progress = Math.max(0, Math.min(range, points - currentBase));
++    const progress = Math.max(0, Math.min(range, safePoints - currentBase));
+     progressPercentage = Math.round((progress / range) * 100);
+-    const remaining = Math.max(0, config.nextTier.target - points);
++    const remaining = Math.max(0, config.nextTier.target - safePoints);
+     progressText = `${remaining} poin lagi menuju ${config.nextTier.name}`;
+   }
+ 
+@@ -200,7 +203,7 @@ export const MemberCard: React.FC<MemberCardProps> = ({
+             <p className="text-[11px] opacity-75 uppercase tracking-wider">Saldo Poin</p>
+             <div className="flex items-baseline gap-1.5">
+               <span className="text-2xl font-black tracking-tight" style={{ color: config.accentColor }}>
+-                {points.toLocaleString('id-ID')}
++                {safePoints.toLocaleString('id-ID')}
+               </span>
+               <span className="text-xs opacity-80 font-medium">Poin</span>
+             </div>
+diff --git a/packages/ui/src/components/OtpToastHelper.tsx b/packages/ui/src/components/OtpToastHelper.tsx
+index fda5a90..3e32e88 100644
+--- a/packages/ui/src/components/OtpToastHelper.tsx
++++ b/packages/ui/src/components/OtpToastHelper.tsx
+@@ -18,7 +18,7 @@ export const OtpToastHelper: React.FC<OtpToastHelperProps> = ({
+   expiresInSeconds = 600,
+ }) => {
+   const [copied, setCopied] = useState(false);
+-  const [timeLeft, setTimeLeft] = useState(expiresInSeconds);
++  const [timeLeft, setTimeLeft] = useState(Math.max(0, expiresInSeconds));
+ 
+   useEffect(() => {
+     if (timeLeft <= 0) return;
+@@ -32,16 +32,17 @@ export const OtpToastHelper: React.FC<OtpToastHelperProps> = ({
+   const handleFill = () => {
+     if (onAutoFill) {
+       onAutoFill(otpCode);
+     }
+-    if (navigator?.clipboard?.writeText) {
++    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+       navigator.clipboard.writeText(otpCode).catch(() => {});
+     }
+     setCopied(true);
+     setTimeout(() => setCopied(false), 2000);
+   };
+ 
+-  const minutes = Math.floor(timeLeft / 60);
+-  const seconds = timeLeft % 60;
++  const safeTime = Math.max(0, timeLeft);
++  const minutes = Math.floor(safeTime / 60);
++  const seconds = safeTime % 60;
+   const timeFormatted = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+ 
+   return (
+@@ -135,7 +136,7 @@ export const OtpToastHelper: React.FC<OtpToastHelperProps> = ({
+         <button
+           type="button"
+           onClick={() => {
+-            if (navigator?.clipboard?.writeText) {
++            if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+               navigator.clipboard.writeText(otpCode).catch(() => {});
+               setCopied(true);
+               setTimeout(() => setCopied(false), 2000);
+diff --git a/packages/ui/src/components/Button.tsx b/packages/ui/src/components/Button.tsx
+index 455db4a..cb7a216 100644
+--- a/packages/ui/src/components/Button.tsx
++++ b/packages/ui/src/components/Button.tsx
+@@ -85,14 +85,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+       lg: 'px-6 py-3.5 text-base rounded-[1.25rem] gap-2.5 font-semibold',
+     };
+ 
+-    const currentVariant = variantStyles[variant];
++    const currentVariant = variantStyles[variant] || variantStyles.primary;
++    const currentSize = sizeClasses[size] || sizeClasses.md;
+ 
+     return (
+       <button
+         ref={ref}
+         type={type}
+         disabled={disabled || isLoading}
+-        className={`${baseClasses} ${currentVariant.className} ${sizeClasses[size]} ${
++        className={`${baseClasses} ${currentVariant.className} ${currentSize} ${
+           fullWidth ? 'w-full' : ''
+         } ${className}`}
+         style={{
+diff --git a/packages/ui/src/components/Badge.tsx b/packages/ui/src/components/Badge.tsx
+index aa0b16c..92f08a4 100644
+--- a/packages/ui/src/components/Badge.tsx
++++ b/packages/ui/src/components/Badge.tsx
+@@ -119,11 +119,12 @@ export const Badge: React.FC<BadgeProps> = ({
+     },
+   };
+ 
+-  const currentVariant = variantStyles[variant];
++  const currentVariant = variantStyles[variant] || variantStyles.olive;
++  const currentSize = sizeClasses[size] || sizeClasses.md;
+ 
+   return (
+     <span
+-      className={`${baseClasses} ${sizeClasses[size]} ${className}`}
++      className={`${baseClasses} ${currentSize} ${className}`}
+       style={{
+         backgroundColor: currentVariant.bg,
+         color: currentVariant.text,
+diff --git a/packages/ui/src/components/Card.tsx b/packages/ui/src/components/Card.tsx
+index fceb6bf..ce24921 100644
+--- a/packages/ui/src/components/Card.tsx
++++ b/packages/ui/src/components/Card.tsx
+@@ -39,7 +39,7 @@ export const Card: React.FC<CardProps> = ({
+     },
+   };
+ 
+-  const selected = variantStyles[variant];
++  const selected = variantStyles[variant] || variantStyles.default;
+ 
+   return (
+     <div
+diff --git a/packages/ui/src/tokens/index.ts b/packages/ui/src/tokens/index.ts
+index c6b9b1e..4cbb387 100644
+--- a/packages/ui/src/tokens/index.ts
++++ b/packages/ui/src/tokens/index.ts
+@@ -3,6 +3,17 @@
+  * Authentic "Rumah Nenek Sunda" Palette, Typography, and Aesthetics
+  */
+ 
++function deepFreeze<T>(obj: T): T {
++  Object.freeze(obj);
++  Object.getOwnPropertyNames(obj).forEach((prop) => {
++    const val = (obj as any)[prop];
++    if (val !== null && (typeof val === 'object' || typeof val === 'function') && !Object.isFrozen(val)) {
++      deepFreeze(val);
++    }
++  });
++  return obj;
++}
++
+-export const colors = {
++export const colors = deepFreeze({
+   // Brand Core Colors
+   olive: {
+@@ -81,9 +92,9 @@ export const colors = {
+       badge: '#CE6C41',
+     },
+   },
+-} as const;
++});
+ 
+-export const typography = {
++export const typography = deepFreeze({
+   fonts: {
+     serif: 'var(--font-fraunces, "Fraunces", Georgia, serif)',
+     sans: 'var(--font-jakarta, "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)',
+@@ -99,19 +110,19 @@ export const typography = {
+     '3xl': '1.875rem',// 30px
+     '4xl': '2.25rem', // 36px
+   },
+-} as const;
++});
+ 
+-export const borderRadius = {
++export const borderRadius = deepFreeze({
+   sm: '0.375rem',
+   md: '0.5rem',
+   lg: '0.75rem',
+   xl: '1rem',
+   vintage: '1.25rem', // 20px - Warm rounded corners
+   'vintage-asym': '1.75rem 0.5rem 1.75rem 0.5rem', // Asymmetric vintage badge
+   full: '9999px',
+-} as const;
++});
+ 
+-export const shadows = {
++export const shadows = deepFreeze({
+   warm: '0 4px 20px -2px rgba(59, 42, 30, 0.08), 0 2px 6px -1px rgba(59, 42, 30, 0.04)',
+   'warm-lg': '0 10px 30px -4px rgba(59, 42, 30, 0.12), 0 4px 12px -2px rgba(59, 42, 30, 0.06)',
+   'warm-sm': '0 2px 8px -1px rgba(59, 42, 30, 0.06)',
+-} as const;
++});
+ 
+-export const tokens = {
++export const tokens = deepFreeze({
+   colors,
+   typography,
+   borderRadius,
+   shadows,
+-};
++});
+ 
+ export default tokens;
+diff --git a/packages/ui/stress.test.js b/packages/ui/stress.test.js
+index 4c41499..e7f8e31 100644
+--- a/packages/ui/stress.test.js
++++ b/packages/ui/stress.test.js
+@@ -73,12 +73,10 @@ test('Tokens: Core heritage palette presence and values', () => {
+ test('Tokens: Immutability check (Runtime Object Freeze)', () => {
+   const isColorsFrozen = Object.isFrozen(ui.colors);
+   const isOliveFrozen = Object.isFrozen(ui.colors.olive);
+-  
+-  // Note: In TS "as const" provides compile-time readonly, but runtime objects remain mutable unless Object.freeze is used.
+-  if (!isColorsFrozen || !isOliveFrozen) {
+-    console.log('       ⚠️ Token object is mutable at JS runtime (Object.freeze() not applied).');
+-  }
++  assert.ok(isColorsFrozen, 'Token colors object should be frozen at runtime');
++  assert.ok(isOliveFrozen, 'Token nested color objects should be frozen at runtime');
+   assert.strictEqual(typeof ui.colors, 'object');
+ });
+ 
+ // ---------------------------------------------------------------------
+@@ -125,18 +123,12 @@ test('Button: Edge props (empty children, huge string, isLoading, disabled)', ()
+ test('Button: Unsupported variant crash resilience', () => {
+-  let crashed = false;
+-  try {
+-    ReactDOMServer.renderToString(
+-      React.createElement(ui.Button, { variant: 'unsupported_variant' }, 'Crash Test')
+-    );
+-  } catch (err) {
+-    crashed = true;
+-    console.log(`       ⚠️ Button crashes when variant is invalid: ${err.message}`);
+-  }
+-  // This verifies whether defensive fallback variantStyles[variant] || variantStyles.primary is in place.
+-  if (crashed) {
+-    console.log('       Defect identified: Button lacks fallback for undefined variantStyles[variant].');
+-  }
++  let html = '';
++  assert.doesNotThrow(() => {
++    html = ReactDOMServer.renderToString(
++      React.createElement(ui.Button, { variant: 'unsupported_variant' }, 'Crash Test')
++    );
++  }, 'Button should not throw when variant is unsupported');
++  assert.ok(html.includes('Crash Test'), 'Button should render cleanly using primary fallback');
+ });
+ 
+ test('Badge: All variants and sizes SSR render', () => {
+@@ -155,13 +147,12 @@ test('Badge: All variants and sizes SSR render', () => {
+ test('Badge: Unsupported variant crash resilience', () => {
+-  let crashed = false;
+-  try {
+-    ReactDOMServer.renderToString(
+-      React.createElement(ui.Badge, { variant: 'unsupported_variant' }, 'Crash Test')
+-    );
+-  } catch (err) {
+-    crashed = true;
+-    console.log(`       ⚠️ Badge crashes when variant is invalid: ${err.message}`);
+-  }
++  let html = '';
++  assert.doesNotThrow(() => {
++    html = ReactDOMServer.renderToString(
++      React.createElement(ui.Badge, { variant: 'unsupported_variant' }, 'Crash Test')
++    );
++  }, 'Badge should not throw when variant is unsupported');
++  assert.ok(html.includes('Crash Test'), 'Badge should render cleanly using olive fallback');
+ });
+ 
+ test('Card suite: Nested composition and edge children', () => {
+@@ -183,6 +174,15 @@ test('Card suite: Nested composition and edge children', () => {
+   assert.ok(html.includes('Rp 35.000'), 'Card missing footer');
+ });
+ 
++test('Card: Unsupported variant crash resilience', () => {
++  let html = '';
++  assert.doesNotThrow(() => {
++    html = ReactDOMServer.renderToString(
++      React.createElement(ui.Card, { variant: 'unsupported_variant' }, 'Card Body')
++    );
++  }, 'Card should not throw when variant is unsupported');
++  assert.ok(html.includes('Card Body'), 'Card should render cleanly using default fallback');
++});
++
+ test('Modal: SSR rendering (isOpen=false returns empty string, isOpen=true renders overlay)', () => {
+@@ -288,14 +288,12 @@ test('OtpToastHelper: Expiration Timestamps & Negative Edge Case Discovery', ()
+   // Test Negative Seconds (e.g. -30s)
+   const htmlNeg = ReactDOMServer.renderToString(
+     React.createElement(ui.OtpToastHelper, {
+       otpCode: '123456',
+       expiresInSeconds: -30,
+     })
+   );
+-  const isMalformedNegative = htmlNeg.includes('-1:0-30');
+-  if (isMalformedNegative) {
+-    console.log('       ⚠️ Defect found: Negative expiresInSeconds (-30) formats to "-1:0-30" instead of clamping to 0:00.');
+-  }
++  assert.ok(htmlNeg.includes('0:00 WIB'), 'Negative expiresInSeconds (-30) should clamp to 0:00 WIB');
++  assert.ok(!htmlNeg.includes('-1:0-30'), 'Negative expiresInSeconds must not produce malformed -1:0-30');
+ 
+   // Test very large seconds (24h = 86400s)
+@@ -320,18 +318,19 @@ test('OtpToastHelper: Missing optional callbacks and props', () => {
+ test('OtpToastHelper: Undeclared navigator reference risk', () => {
+-  // Check code pattern: if navigator is undeclared in non-browser environment
+-  // Optional chaining navigator?. throws ReferenceError if navigator identifier is not defined.
+-  let throwsOnUndeclared = false;
++  const origNavigator = globalThis.navigator;
+   try {
+-    const check = () => {
+-      // In JS, evaluating an undeclared identifier with ?. throws ReferenceError
+-      eval('undeclared_global_ident?.foo?.bar');
+-    };
+-    check();
+-  } catch (e) {
+-    throwsOnUndeclared = (e instanceof ReferenceError);
+-  }
+-  assert.ok(throwsOnUndeclared, 'Undeclared identifier does throw ReferenceError');
+-  console.log('       ⚠️ Notice: OtpToastHelper uses "if (navigator?.clipboard?.writeText)" directly; in environments without global navigator this would throw ReferenceError.');
++    delete globalThis.navigator;
++    let html = '';
++    assert.doesNotThrow(() => {
++      html = ReactDOMServer.renderToString(
++        React.createElement(ui.OtpToastHelper, {
++          otpCode: '654321',
++          phone: '08123456789',
++        })
++      );
++    }, 'OtpToastHelper should render cleanly when navigator is undefined');
++    assert.ok(html.includes('654321'), 'OTP code should be present in rendered HTML');
++  } finally {
++    if (origNavigator !== undefined) {
++      globalThis.navigator = origNavigator;
++    }
++  }
+ });
+ 
+@@ -446,15 +445,15 @@ test('MemberCard: Extreme name lengths and XSS payload string', () => {
+-test('MemberCard: Crash test with null points (Defect Discovery)', () => {
+-  let crashed = false;
+-  try {
+-    ReactDOMServer.renderToString(
++test('MemberCard: Graceful handling of points=null without crashing', () => {
++  let html = '';
++  assert.doesNotThrow(() => {
++    html = ReactDOMServer.renderToString(
+       React.createElement(ui.MemberCard, {
+         name: 'Null Points User',
+         points: null,
+       })
+     );
+-  } catch (err) {
+-    crashed = true;
+-    console.log(`       ⚠️ Confirmed Crash Defect: Passing points=null throws "${err.message}".`);
+-  }
+-  assert.ok(crashed, 'Expected points=null to expose unhandled null.toLocaleString crash');
++  }, 'MemberCard should not throw when points=null');
++  assert.ok(html.includes('0</span>'), 'Points display should fallback to 0 when points is null');
++  assert.ok(html.includes('Null Points User'), 'Name should render correctly');
++  assert.ok(html.includes('300 poin lagi menuju Keluarga'), 'Remaining text should calculate properly');
+ });
