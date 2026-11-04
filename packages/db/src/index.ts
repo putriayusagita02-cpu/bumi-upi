@@ -60,9 +60,11 @@ export {
   updateStock
 } from './mockStore';
 
-// 6. Cross-App Live Order Sync Bridge (Web <-> Admin POS & Kitchen)
+// 6. Cross-App Live Order & Customer Sync Bridge (Web <-> Admin POS, Kitchen & CRM)
 export {
   getSharedOrders,
   saveSharedOrder,
-  updateSharedOrderStatus
+  updateSharedOrderStatus,
+  getSharedCustomers,
+  saveSharedCustomer
 } from './liveSync';

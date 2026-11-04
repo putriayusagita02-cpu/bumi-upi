@@ -52,7 +52,7 @@ export function generate200Customers(): Profile[] {
   customers.push({
     id: 'usr-admin-01',
     role: 'admin',
-    name: 'Teh Upi (Owner Bumi Upi)',
+    name: 'Owner',
     email: 'putriayusagita02@gmail.com',
     phone: '081223344550',
     is_phone_verified: true,
@@ -494,6 +494,10 @@ export class MockStore {
     if (!phoneOrEmailOrId) return null;
     const clean = String(phoneOrEmailOrId).trim();
     if (this.customers.has(clean)) return this.customers.get(clean)!;
+    if (clean === 'owner@bumiupi.id' || clean === 'admin@bumiupi.id') {
+      const admin = this.customers.get('usr-admin-01');
+      if (admin) return admin;
+    }
     for (const c of this.customers.values()) {
       if (c.phone === clean || c.email === clean || c.qr_code === clean) {
         return c;
@@ -971,7 +975,8 @@ export class MockStore {
       pointsEarned,
       newTier,
       status: 'confirmed',
-      message: 'Pesanan dan pembayaran berhasil diproses secara atomic.'
+      message: 'Pesanan dan pembayaran berhasil diproses secara atomic.',
+      order: orderRecord
     };
   }
 

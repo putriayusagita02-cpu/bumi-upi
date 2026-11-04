@@ -537,7 +537,7 @@ export function generate200Customers(): Profile[] {
   customers.push({
     id: 'usr-admin-01',
     role: 'admin',
-    name: 'Teh Upi (Owner Bumi Upi)',
+    name: 'Owner',
     email: 'admin@bumiupi.id',
     phone: '081223344550',
     is_phone_verified: true,
@@ -979,7 +979,7 @@ export const MOCK_CAMPAIGNS: Campaign[] = [
 export const MOCK_AUDIT_LOGS: AuditLog[] = [
   {
     id: 'aud-01',
-    staff_name: 'Teh Upi (Owner)',
+    staff_name: 'Owner',
     action: 'UPDATE_POINTS_RULE',
     target_entity: 'system_settings',
     details: 'Mengubah rasio poin: Rp 10.000 = 1 Poin Bumi',
@@ -996,7 +996,7 @@ export const MOCK_AUDIT_LOGS: AuditLog[] = [
   },
   {
     id: 'aud-03',
-    staff_name: 'Teh Upi (Owner)',
+    staff_name: 'Owner',
     action: 'TRIGGER_CAMPAIGN',
     target_entity: 'campaigns',
     target_id: 'cmp-02',

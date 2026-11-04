@@ -18,7 +18,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { login, quickSwitch } = useAuth();
 
-  const [identifier, setIdentifier] = useState('putriayusagita02@gmail.com');
+  const [identifier, setIdentifier] = useState('owner@bumiupi.id');
   const [password, setPassword] = useState('BumiUpiAdmin2026!');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -153,10 +153,10 @@ export default function LoginPage() {
               <div className="space-y-0.5">
                 <div className="flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-[#3E4F30]" />
-                  <span className="font-bold text-xs text-[#2B2625]">Teh Upi (Owner / Admin)</span>
+                  <span className="font-bold text-xs text-[#2B2625]">Owner (Admin)</span>
                   <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#3E4F30] text-white font-bold">Akses Penuh</span>
                 </div>
-                <p className="text-[10px] text-[#634E3F] font-mono">putriayusagita02@gmail.com</p>
+                <p className="text-[10px] text-[#634E3F] font-mono">owner@bumiupi.id</p>
               </div>
               <div className="flex items-center gap-2">
                 <button

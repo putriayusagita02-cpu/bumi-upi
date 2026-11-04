@@ -323,6 +323,7 @@ export interface CreateOrderAtomicResult {
   status?: OrderStatus;
   message?: string;
   error?: string;
+  order?: Order;
 }
 
 export interface VerifyOtpResult {

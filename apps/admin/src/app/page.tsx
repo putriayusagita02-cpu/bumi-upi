@@ -54,7 +54,7 @@ export default function AdminHomePage() {
             <span>Sistem POS & CRM Terintegrasi Rumah Nenek Garut</span>
           </div>
           <h2 className="font-serif text-2xl md:text-3xl font-bold mb-2 text-white">
-            Wilujeng Sumping, {user ? user.name : 'Teh Upi'}!
+            Wilujeng Sumping, {user ? user.name : 'Owner'}!
           </h2>
           <p className="text-krem/80 text-sm leading-relaxed mb-4">
             Kelola transaksi kasir meja, pantau antrean pesanan dapur secara real-time, pantau 7 segmen loyalitas pelanggan (RFM), dan verifikasi struk otomatis via Telegram Bot @BumiUpiBot.
@@ -261,7 +261,7 @@ export default function AdminHomePage() {
                 Demo Login & Akun Evaluator
               </h4>
               <p className="text-xs text-kopi-muted mt-1 leading-relaxed">
-                Kredensial instan dengan tombol sekali klik: Admin (Putri Ayu Sagita), Kasir (Kang Asep), dan Pelanggan (Dimas Kurniawan).
+                Kredensial instan dengan tombol sekali klik: Admin (Owner), Kasir (Kang Asep), dan Pelanggan (Dimas Kurniawan).
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-krem-border flex items-center justify-between text-xs font-semibold text-olive">

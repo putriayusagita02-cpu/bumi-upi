@@ -47,7 +47,7 @@ export default function InventoryPage() {
     if (!item) return;
     const current = item.stock || 0;
     const nextVal = Math.max(0, current + delta);
-    const staffName = user?.name || 'Teh Upi (Owner)';
+    const staffName = user?.name || 'Owner';
     const staffId = user?.id || 'usr-admin-01';
 
     adminStore.updateStock(itemId, nextVal, staffId, staffName);
@@ -63,7 +63,7 @@ export default function InventoryPage() {
   const handleSaveEdit = (itemId: number) => {
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
-    const staffName = user?.name || 'Teh Upi (Owner)';
+    const staffName = user?.name || 'Owner';
     const staffId = user?.id || 'usr-admin-01';
 
     adminStore.updateStock(itemId, editStockValue, staffId, staffName);

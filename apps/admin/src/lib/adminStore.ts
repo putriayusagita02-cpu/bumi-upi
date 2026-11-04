@@ -197,7 +197,7 @@ const INITIAL_LOGS: AuditLogItem[] = [
     action: 'AUTH_LOGIN',
     targetId: 'usr-admin-01',
     staffId: 'usr-admin-01',
-    staffName: 'Teh Upi (Owner)',
+    staffName: 'Owner',
     details: 'Login berhasil sebagai Administrator Owner Bumi Upi'
   },
   {
@@ -324,6 +324,44 @@ export class AdminStore {
       const data = await res.json();
       if (data.success && Array.isArray(data.orders)) {
         this.mergeLiveOrders(data.orders);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Merge live registered customers from web portal
+  mergeLiveCustomers(incomingCustomers: CustomerProfile[]): void {
+    if (!Array.isArray(incomingCustomers) || incomingCustomers.length === 0) return;
+    const existingMap = new Map<string, CustomerProfile>();
+    for (const c of this.customers) {
+      existingMap.set(c.id, c);
+      if (c.phone) existingMap.set(c.phone, c);
+    }
+    let hasChanges = false;
+    for (const inc of incomingCustomers) {
+      const key = inc.id || inc.phone;
+      if (key && !existingMap.has(key)) {
+        this.customers.unshift(inc);
+        existingMap.set(key, inc);
+        if (inc.id) existingMap.set(inc.id, inc);
+        if (inc.phone) existingMap.set(inc.phone, inc);
+        hasChanges = true;
+      }
+    }
+    if (hasChanges) {
+      this.saveToStorage();
+    }
+  }
+
+  // Fetch live registered customers asynchronously from CRM API
+  async syncLiveCustomersFromApi(): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+      const res = await fetch('/api/crm/customers');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.customers)) {
+        this.mergeLiveCustomers(data.customers);
       }
     } catch {
       // ignore
@@ -608,7 +646,7 @@ export class AdminStore {
   }
 
   // Update menu inventory stock
-  updateStock(itemId: number, newStock: number, staffId: string = 'usr-admin-01', staffName: string = 'Teh Upi (Owner)'): boolean {
+  updateStock(itemId: number, newStock: number, staffId: string = 'usr-admin-01', staffName: string = 'Owner'): boolean {
     const item = this.items.find((i) => i.id === itemId);
     if (!item) return false;
 

@@ -67,9 +67,9 @@ export default function PosPage() {
   const [latestWebOrder, setLatestWebOrder] = useState<OrderRecord | null>(null);
 
   useEffect(() => {
+    adminStore.loadFromStorage();
     const syncOrders = async () => {
       await adminStore.syncLiveOrdersFromApi();
-      adminStore.loadFromStorage();
       const active = adminStore.orders.filter(
         (o) => o.status === 'confirmed' || o.status === 'preparing'
       );

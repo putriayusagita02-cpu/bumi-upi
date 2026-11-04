@@ -234,7 +234,7 @@ export const UpiChatDrawer: React.FC = () => {
               {loading && (
                 <div className="flex items-center gap-2 p-3 bg-white border border-[#E8DCC2] rounded-2xl w-fit text-xs text-[#634E3F] shadow-xs">
                   <span className="animate-spin text-base">🌿</span>
-                  <span>Teh Upi sedang mencari jawaban di dapur nenek...</span>
+                  <span>Upi sedang mencari jawaban di dapur nenek...</span>
                 </div>
               )}
               <div ref={messagesEndRef} />

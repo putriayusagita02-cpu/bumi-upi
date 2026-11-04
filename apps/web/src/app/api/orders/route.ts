@@ -35,31 +35,47 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const createdOrder = result.order || orderEngine.getOrder(result.orderId);
+    const createdOrder = result.order || orderEngine.getOrder(result.orderId) || {
+      id: result.orderId || `ord-${Date.now()}`,
+      orderNumber: result.orderNumber || `BU-ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-0001`,
+      idempotencyKey: key,
+      customerId,
+      orderType: orderType || 'dine_in',
+      tableNumber: tableNumber || 'Meja 01',
+      status: result.status || 'confirmed',
+      subtotal: result.subtotal || 0,
+      discountAmount: result.discountAmount || 0,
+      finalAmount: result.finalAmount || 0,
+      pointsEarned: result.pointsEarned || 0,
+      paymentMethod: paymentMethod || 'qris',
+      paymentStatus: 'paid',
+      items: items || [],
+      notes: notes || '',
+      createdAt: new Date().toISOString()
+    };
 
     // 1. Simpan ke data layer bersama (@bumi-upi/db)
-    if (createdOrder) {
-      try {
-        const dbPkg = await import('@bumi-upi/db' as any);
-        if (dbPkg && typeof dbPkg.saveSharedOrder === 'function') {
-          dbPkg.saveSharedOrder(createdOrder);
-        }
-      } catch {}
+    try {
+      const dbPkg = await import('@bumi-upi/db' as any);
+      if (dbPkg && typeof dbPkg.saveSharedOrder === 'function') {
+        dbPkg.saveSharedOrder(createdOrder);
+      }
+    } catch {}
 
-      // 2. Notifikasi langsung ke Admin POS / Dapur KDS jika server admin sedang aktif
-      try {
-        const adminUrl = process.env.ADMIN_URL || 'http://127.0.0.1:3001';
-        fetch(`${adminUrl}/api/pos/transaction`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(createdOrder),
-        }).catch(() => {});
-      } catch {}
-    }
+    // 2. Notifikasi langsung ke Admin POS / Dapur KDS jika server admin sedang aktif
+    try {
+      const adminUrl = process.env.ADMIN_URL || 'http://127.0.0.1:3001';
+      fetch(`${adminUrl}/api/pos/transaction`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(createdOrder),
+      }).catch(() => {});
+    } catch {}
 
     return NextResponse.json({
       success: true,
       ...result,
+      order: createdOrder,
     });
   } catch (err: any) {
     return NextResponse.json(

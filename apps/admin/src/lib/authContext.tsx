@@ -26,11 +26,11 @@ interface AuthContextType {
 export const STAFF_CREDENTIALS = {
   admin: {
     id: 'usr-admin-01',
-    email: 'putriayusagita02@gmail.com',
+    email: 'owner@bumiupi.id',
     password: 'BumiUpiAdmin2026!',
     role: 'admin' as UserRole,
-    name: 'Teh Upi (Putri Ayu Sagita)',
-    title: 'Owner & Pemilik Restoran'
+    name: 'Owner',
+    title: 'Owner'
   },
   kasir: {
     id: 'usr-kasir-01',
@@ -133,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // 1. Validasi Admin Owner
     if (
-      (cleanId === STAFF_CREDENTIALS.admin.email.toLowerCase() || cleanId === 'admin@bumiupi.id' || cleanId === 'admin') &&
+      (cleanId === STAFF_CREDENTIALS.admin.email.toLowerCase() || cleanId === 'owner@bumiupi.id' || cleanId === 'admin@bumiupi.id' || cleanId === 'putriayusagita02@gmail.com' || cleanId === 'admin') &&
       (cleanPass === STAFF_CREDENTIALS.admin.password || cleanPass === 'bumiupi2026' || cleanPass === 'BumiUpiAdmin2026!')
     ) {
       quickSwitch('admin');

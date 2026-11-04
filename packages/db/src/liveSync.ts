@@ -7,6 +7,127 @@ if (!globalAny.__BUMI_LIVE_ORDERS__) {
 }
 const memStore: Map<string, Order> = globalAny.__BUMI_LIVE_ORDERS__;
 
+if (!globalAny.__BUMI_LIVE_CUSTOMERS__) {
+  globalAny.__BUMI_LIVE_CUSTOMERS__ = new Map<string, any>();
+}
+const customerMemStore: Map<string, any> = globalAny.__BUMI_LIVE_CUSTOMERS__;
+
+function getSharedCustomerFilePath(): string | null {
+  if (typeof window !== 'undefined') return null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const path = require('path');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require('fs');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const os = require('os');
+
+    if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+      return path.resolve(os.tmpdir(), 'bumi_upi_live_customers.json');
+    }
+
+    let current = process.cwd();
+    for (let i = 0; i < 5; i++) {
+      const hasWorkspace = fs.existsSync(path.resolve(current, 'pnpm-workspace.yaml'));
+      const hasPkgDb = fs.existsSync(path.resolve(current, 'packages', 'db'));
+      const hasDataDir = fs.existsSync(path.resolve(current, '.data'));
+
+      if (hasWorkspace || hasPkgDb || hasDataDir) {
+        const rootData = path.resolve(current, '.data');
+        if (!fs.existsSync(rootData)) {
+          try { fs.mkdirSync(rootData, { recursive: true }); } catch {}
+        }
+        return path.resolve(rootData, 'live_customers.json');
+      }
+      const parent = path.dirname(current);
+      if (parent === current) break;
+      current = parent;
+    }
+
+    return path.resolve(os.tmpdir(), 'bumi_upi_live_customers.json');
+  } catch {
+    return null;
+  }
+}
+
+function getTmpCustomerMirrorPath(): string | null {
+  if (typeof window !== 'undefined') return null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const path = require('path');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const os = require('os');
+    return path.resolve(os.tmpdir(), 'bumi_upi_live_customers.json');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Retrieve all shared live registered customers
+ */
+export function getSharedCustomers(): any[] {
+  if (typeof window === 'undefined') {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const fs = require('fs');
+      const candidatePaths = [getSharedCustomerFilePath(), getTmpCustomerMirrorPath()].filter(Boolean) as string[];
+
+      for (const p of candidatePaths) {
+        if (fs.existsSync(p)) {
+          try {
+            const raw = fs.readFileSync(p, 'utf-8');
+            const list = JSON.parse(raw);
+            if (Array.isArray(list) && list.length > 0) {
+              for (const cust of list) {
+                const key = cust.id || cust.phone || cust.email;
+                if (key) customerMemStore.set(key, cust);
+              }
+            }
+          } catch {}
+        }
+      }
+    } catch {}
+  }
+  return Array.from(customerMemStore.values());
+}
+
+/**
+ * Save a newly registered customer to the shared live store
+ */
+export function saveSharedCustomer(customer: any): void {
+  if (!customer) return;
+  const key = customer.id || customer.phone || customer.email || `cust-${Date.now()}`;
+  customerMemStore.set(key, customer);
+
+  if (typeof window === 'undefined') {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const fs = require('fs');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const path = require('path');
+
+      const existing = getSharedCustomers();
+      const map = new Map(existing.map((c) => [c.id || c.phone, c]));
+      map.set(customer.id || customer.phone, customer);
+      const list = Array.from(map.values());
+      const serialized = JSON.stringify(list, null, 2);
+
+      const targetPaths = [getSharedCustomerFilePath(), getTmpCustomerMirrorPath()].filter(Boolean) as string[];
+
+      for (const target of targetPaths) {
+        try {
+          const dir = path.dirname(target);
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          fs.writeFileSync(target, serialized, 'utf-8');
+        } catch {}
+      }
+    } catch {}
+  }
+}
+
 function getSharedFilePath(): string | null {
   if (typeof window !== 'undefined') return null;
   try {

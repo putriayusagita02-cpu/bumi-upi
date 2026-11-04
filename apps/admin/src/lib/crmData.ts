@@ -205,7 +205,7 @@ export const SEGMENT_DEFINITIONS: Record<RfmSegment, { desc: string; action: str
   },
   Berisiko: {
     desc: 'Dahulu pembelanja besar dan sering mampir, tetapi tidak pernah datang belakangan ini.',
-    action: 'Hubungi via WhatsApp secara langsung dari Teh Upi dengan penawaran spesial.',
+    action: 'Hubungi via WhatsApp secara langsung dari Owner dengan penawaran spesial.',
     color: '#9E4520',
     badgeBg: 'bg-rose-100 text-rose-800 border-rose-300'
   },

@@ -216,7 +216,7 @@ export function addCampaign(cmp: Omit<Campaign, 'id' | 'created_at'>): Campaign 
   
   globalAuditLogs.unshift({
     id: `aud-${Date.now()}`,
-    staff_name: 'Teh Upi (Owner)',
+    staff_name: 'Owner',
     action: 'CREATE_CAMPAIGN',
     target_entity: 'campaigns',
     target_id: newCmp.id,

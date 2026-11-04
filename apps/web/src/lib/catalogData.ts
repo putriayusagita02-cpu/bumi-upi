@@ -235,9 +235,9 @@ export const DEMO_CUSTOMERS_LIST: CustomerProfile[] = [
     favoritePreferences: 'Lidah Sambel Hejo, Kopi Hitam Garut Panas, Pepes Ayam',
   },
   {
-    id: 'cust-putri-004',
-    name: 'Putri Ayu Sagita',
-    email: 'putriayusagita02@gmail.com',
+    id: 'cust-owner-004',
+    name: 'Owner',
+    email: 'owner@bumiupi.id',
     phone: '081299988877',
     tier: 'Keluarga',
     pointsBalance: 750,

@@ -29,12 +29,12 @@ export default function KitchenPage() {
   };
 
   useEffect(() => {
+    adminStore.loadFromStorage();
     refreshOrders();
     adminStore.syncLiveOrdersFromApi().then(refreshOrders);
 
     const interval = setInterval(async () => {
       await adminStore.syncLiveOrdersFromApi();
-      adminStore.loadFromStorage();
       setOrders([...adminStore.orders]);
     }, 3000);
     return () => clearInterval(interval);

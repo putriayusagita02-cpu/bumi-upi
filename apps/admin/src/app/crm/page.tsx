@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Users,
   Award,
@@ -17,6 +17,7 @@ import {
   Download
 } from 'lucide-react';
 import { INITIAL_CUSTOMERS, CustomerProfile, RfmSegment, SEGMENT_DEFINITIONS } from '../../lib/crmData';
+import { adminStore } from '../../lib/adminStore';
 
 const ALL_SEGMENTS: RfmSegment[] = [
   'Juara',
@@ -34,6 +35,28 @@ export default function CrmPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [tierFilter, setTierFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'monetary' | 'recency' | 'frequency' | 'points' | 'clv'>('monetary');
+
+  useEffect(() => {
+    adminStore.loadFromStorage();
+    if (adminStore.customers && adminStore.customers.length > 0) {
+      setCustomers([...adminStore.customers]);
+    }
+
+    const fetchCustomers = async () => {
+      try {
+        await adminStore.syncLiveCustomersFromApi();
+        if (adminStore.customers && adminStore.customers.length > 0) {
+          setCustomers([...adminStore.customers]);
+        }
+      } catch (e) {
+        console.warn('Failed to sync live customers', e);
+      }
+    };
+
+    fetchCustomers();
+    const interval = setInterval(fetchCustomers, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Summary Metrics
   const totalCustomers = customers.length;

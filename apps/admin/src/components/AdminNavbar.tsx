@@ -127,7 +127,7 @@ export function AdminNavbar({ onToggleMobileMenu }: AdminNavbarProps = {}) {
               title="Masuk sebagai Owner / Administrator"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Admin (Teh Upi)</span>
+              <span>Admin (Owner)</span>
             </button>
             <button
               onClick={() => quickSwitch('kasir')}

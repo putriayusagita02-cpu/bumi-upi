@@ -137,7 +137,30 @@ export async function POST(req: NextRequest) {
         qrValue: `BUMI-UPI-MEMBER-${cleanPhone}`,
         birthDate: '1998-05-15',
         favoritePreferences: 'Nasi Liwet Komplit, Es Cincau Jadoel',
+        monetaryTotal: 0,
+        frequencyCount: 0,
+        recencyDays: 0,
+        rfmSegment: 'Potensial',
+        createdAt: new Date().toISOString()
       };
+
+      // 1. Simpan ke data layer bersama agar langsung terdeteksi di CRM Admin
+      try {
+        const dbPkg = await import('@bumi-upi/db' as any);
+        if (dbPkg && typeof dbPkg.saveSharedCustomer === 'function') {
+          dbPkg.saveSharedCustomer(customerProfile);
+        }
+      } catch {}
+
+      // 2. Kirim notifikasi instan ke server Admin CRM jika aktif
+      try {
+        const adminUrl = process.env.ADMIN_URL || 'http://127.0.0.1:3001';
+        fetch(`${adminUrl}/api/crm/customers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(customerProfile),
+        }).catch(() => {});
+      } catch {}
 
       return NextResponse.json({
         success: true,

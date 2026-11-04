@@ -95,7 +95,7 @@ export function queryUpiLocalKnowledge(prompt: string, userContext?: any): strin
   }
 
   // 10. Guardrail Fallback: Jujur, Tidak Mengarang, Arahkan ke WhatsApp
-  return `Punten, Upi belum memiliki informasi pasti mengenai hal tersebut dalam data resmi rumah kami. Agar tidak keliru, silakan langsung hubungi admin WhatsApp kami di **0812-2334-4550** (wa.me/6281223344550) ya. Teh Upi dan tim siap membantu dengan senang hati! 🌿`;
+  return `Punten, Upi belum memiliki informasi pasti mengenai hal tersebut dalam data resmi rumah kami. Agar tidak keliru, silakan langsung hubungi admin WhatsApp kami di **0812-2334-4550** (wa.me/6281223344550) ya. Owner dan tim siap membantu dengan senang hati! 🌿`;
 }
 
 /**
