@@ -164,6 +164,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           localStorage.setItem('bumi_auth_customer', JSON.stringify(authenticatedCustomer));
         } catch {}
+
+        // Sinkronkan data pendaftaran member baru langsung ke CRM Admin
+        try {
+          const adminCandidates = [
+            process.env.NEXT_PUBLIC_ADMIN_URL,
+            'https://bumi-upi-admin.vercel.app',
+            'http://127.0.0.1:3001'
+          ].filter(Boolean) as string[];
+
+          for (const aUrl of adminCandidates) {
+            fetch(`${aUrl}/api/crm/customers`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(authenticatedCustomer),
+              mode: 'cors'
+            }).catch(() => {});
+          }
+        } catch {}
+
         setActiveOtpState(null);
         return { success: true, customer: authenticatedCustomer };
       }

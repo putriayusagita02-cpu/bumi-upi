@@ -70,9 +70,14 @@ export default function CheckoutPage() {
           ? appliedVoucher.id || appliedVoucher.code
           : null;
 
+      const custName = customer?.name || 'Pelanggan Member';
+      const custPhone = customer?.phone || '';
+
       const payload = {
         idempotencyKey,
         customerId: customer?.id || null,
+        customerName: custName,
+        customerPhone: custPhone,
         orderType,
         tableNumber: orderType === 'dine_in' ? tableNumber : 'Takeaway',
         customerVoucherId: chosenVoucherId,
@@ -109,23 +114,31 @@ export default function CheckoutPage() {
       }
 
       const orderId = data.orderId || data.order?.id;
-      const orderRecord = data.order || {
-        id: orderId,
-        orderNumber: data.orderNumber || `BU-ORD-${orderId}`,
-        customerId: customer?.id || null,
-        orderType,
-        tableNumber: orderType === 'dine_in' ? tableNumber : 'Takeaway',
-        status: 'confirmed',
-        subtotal,
-        discountAmount,
-        finalAmount: data.finalAmount || totalAmount,
-        pointsEarned: data.pointsEarned || 0,
-        paymentMethod: 'qris',
-        paymentStatus: 'paid',
-        items: payload.items,
-        notes: payload.notes,
-        createdAt: new Date().toISOString()
-      };
+      const orderRecord = data.order
+        ? {
+            ...data.order,
+            customerName: data.order.customerName || custName,
+            customerPhone: data.order.customerPhone || custPhone,
+          }
+        : {
+            id: orderId,
+            orderNumber: data.orderNumber || `BU-ORD-${orderId}`,
+            customerId: customer?.id || null,
+            customerName: custName,
+            customerPhone: custPhone,
+            orderType,
+            tableNumber: orderType === 'dine_in' ? tableNumber : 'Takeaway',
+            status: 'confirmed',
+            subtotal,
+            discountAmount,
+            finalAmount: data.finalAmount || totalAmount,
+            pointsEarned: data.pointsEarned || 0,
+            paymentMethod: 'qris',
+            paymentStatus: 'paid',
+            items: payload.items,
+            notes: payload.notes,
+            createdAt: new Date().toISOString()
+          };
 
       // Simpan ke localStorage agar riwayat member dan pelacakan order selalu sinkron & instan
       if (typeof window !== 'undefined') {
@@ -139,7 +152,7 @@ export default function CheckoutPage() {
           console.warn('Failed to save order to localStorage', e);
         }
 
-        // Sinkronisasi langsung dari browser ke server Admin KDS/POS (baik lokal maupun di Vercel)
+        // Sinkronisasi langsung dari browser ke server Admin KDS/POS & CRM (baik lokal maupun di Vercel)
         try {
           const adminCandidates = [
             process.env.NEXT_PUBLIC_ADMIN_URL,
@@ -148,12 +161,34 @@ export default function CheckoutPage() {
           ].filter(Boolean) as string[];
 
           for (const adminEndpoint of adminCandidates) {
+            // 1. Sinkronkan tiket pesanan ke KDS Dapur & Kasir
             fetch(`${adminEndpoint}/api/pos/transaction`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(orderRecord),
               mode: 'cors'
             }).catch(() => {});
+
+            // 2. Sinkronkan ke CRM Staf Owner
+            if (customer) {
+              fetch(`${adminEndpoint}/api/crm/customers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  id: customer.id,
+                  name: customer.name || custName,
+                  phone: customer.phone || custPhone,
+                  email: customer.email,
+                  tier: customer.tier || 'Tamu',
+                  pointsBalance: customer.pointsBalance || 50,
+                  monetaryTotal: (customer as any).monetaryTotal ? (customer as any).monetaryTotal + (orderRecord.finalAmount || 0) : (orderRecord.finalAmount || 0),
+                  frequencyCount: ((customer as any).frequencyCount || 0) + 1,
+                  segment: 'Potensial',
+                  recencyDays: 0,
+                }),
+                mode: 'cors'
+              }).catch(() => {});
+            }
           }
         } catch {}
       }

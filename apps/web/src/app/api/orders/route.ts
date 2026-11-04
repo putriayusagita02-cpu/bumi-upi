@@ -7,6 +7,8 @@ export async function POST(req: NextRequest) {
     const {
       idempotencyKey,
       customerId,
+      customerName,
+      customerPhone,
       orderType,
       tableNumber,
       items,
@@ -35,23 +37,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const createdOrder = result.order || orderEngine.getOrder(result.orderId) || {
-      id: result.orderId || `ord-${Date.now()}`,
-      orderNumber: result.orderNumber || `BU-ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-0001`,
+    const resolvedCustName = customerName || (result.order as any)?.customerName || (customerId ? 'Pelanggan Member' : 'Tamu Mandiri (Web)');
+    const resolvedCustPhone = customerPhone || (result.order as any)?.customerPhone || '';
+
+    const createdOrder = {
+      ...(result.order || orderEngine.getOrder(result.orderId) || {}),
+      id: result.orderId || (result.order as any)?.id || `ord-${Date.now()}`,
+      orderNumber: result.orderNumber || (result.order as any)?.orderNumber || `BU-ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-0001`,
       idempotencyKey: key,
       customerId,
+      customerName: resolvedCustName,
+      customerPhone: resolvedCustPhone,
       orderType: orderType || 'dine_in',
       tableNumber: tableNumber || 'Meja 01',
-      status: result.status || 'confirmed',
-      subtotal: result.subtotal || 0,
-      discountAmount: result.discountAmount || 0,
-      finalAmount: result.finalAmount || 0,
-      pointsEarned: result.pointsEarned || 0,
+      status: result.status || (result.order as any)?.status || 'confirmed',
+      subtotal: result.subtotal || (result.order as any)?.subtotal || 0,
+      discountAmount: result.discountAmount || (result.order as any)?.discountAmount || 0,
+      finalAmount: result.finalAmount || (result.order as any)?.finalAmount || 0,
+      pointsEarned: result.pointsEarned || (result.order as any)?.pointsEarned || 0,
       paymentMethod: paymentMethod || 'qris',
       paymentStatus: 'paid',
-      items: items || [],
+      items: items || (result.order as any)?.items || [],
       notes: notes || '',
-      createdAt: new Date().toISOString()
+      createdAt: (result.order as any)?.createdAt || new Date().toISOString()
     };
 
     // 1. Simpan ke Supabase Database jika credentials aktif

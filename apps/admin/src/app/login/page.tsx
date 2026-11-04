@@ -32,7 +32,11 @@ export default function LoginPage() {
     setLoading(false);
 
     if (res.success) {
-      router.push('/pos');
+      if (identifier.toLowerCase().includes('kasir')) {
+        router.push('/pos');
+      } else {
+        router.push('/');
+      }
     } else {
       setErrorMsg(res.error || 'Autentikasi staf gagal. Periksa kembali email dan kata sandi.');
     }
@@ -49,7 +53,11 @@ export default function LoginPage() {
 
   const handleDirectLogin = (role: UserRole) => {
     quickSwitch(role);
-    router.push('/pos');
+    if (role === 'kasir') {
+      router.push('/pos');
+    } else {
+      router.push('/');
+    }
   };
 
   return (
@@ -198,34 +206,6 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => handleDirectLogin('kasir')}
                   className="px-2.5 py-1 rounded-lg bg-amber-700 text-white text-[11px] font-bold hover:brightness-110 transition"
-                >
-                  Masuk Langsung
-                </button>
-              </div>
-            </div>
-
-            {/* Kepala Dapur KDS */}
-            <div className="p-3 rounded-2xl border border-emerald-300 bg-emerald-50/70 flex items-center justify-between hover:bg-emerald-100/70 transition">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-1.5">
-                  <ChefHat className="w-4 h-4 text-emerald-700" />
-                  <span className="font-bold text-xs text-[#2B2625]">Kang Dadang (Kepala Dapur)</span>
-                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-700 text-white font-bold">Live KDS</span>
-                </div>
-                <p className="text-[10px] text-[#634E3F] font-mono">dapur@bumiupi.id</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleSelectStaff('kitchen')}
-                  className="px-2.5 py-1 rounded-lg bg-white border border-emerald-300 text-emerald-800 text-[11px] font-bold hover:bg-emerald-700 hover:text-white transition"
-                >
-                  Pilih
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDirectLogin('kitchen')}
-                  className="px-2.5 py-1 rounded-lg bg-emerald-700 text-white text-[11px] font-bold hover:brightness-110 transition"
                 >
                   Masuk Langsung
                 </button>

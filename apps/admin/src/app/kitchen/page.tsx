@@ -258,8 +258,13 @@ export default function KitchenPage() {
                           <span className="font-mono text-[10px] text-kopi-subtle">
                             {order.orderNumber}
                           </span>
-                          <span className="font-semibold text-terakota-dark">
-                            {order.customerName}
+                          <span className="font-bold text-terakota-dark flex items-center gap-1 bg-terakota-50 px-2 py-0.5 rounded-md border border-terakota-100">
+                            <span className="text-[10px]">👤</span>
+                            <span>
+                              {(order.customerName && order.customerName !== 'Pelanggan Member')
+                                ? order.customerName
+                                : (adminStore.customers.find((c) => c.id === order.customerId)?.name || order.customerName || 'Pelanggan Member')}
+                            </span>
                           </span>
                         </div>
 

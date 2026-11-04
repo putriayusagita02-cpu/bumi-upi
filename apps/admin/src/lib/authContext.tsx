@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type UserRole = 'admin' | 'kasir' | 'kitchen';
+export type UserRole = 'admin' | 'kasir';
 
 export interface AuthUser {
   id: string;
@@ -18,11 +18,11 @@ interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
   login: (email: string, pass: string) => { success: boolean; error?: string };
-  quickSwitch: (role: UserRole) => void;
+  quickSwitch: (role: UserRole | string) => void;
   logout: () => void;
 }
 
-// Kredensial Resmi Staf Operasional Restoran Bumi Upi Garut
+// Kredensial Resmi Staf Operasional Restoran Bumi Upi Garut (HANYA OWNER & KASIR)
 export const STAFF_CREDENTIALS = {
   admin: {
     id: 'usr-admin-01',
@@ -30,7 +30,7 @@ export const STAFF_CREDENTIALS = {
     password: 'BumiUpiAdmin2026!',
     role: 'admin' as UserRole,
     name: 'Owner',
-    title: 'Owner'
+    title: 'Owner & Pemilik Restoran'
   },
   kasir: {
     id: 'usr-kasir-01',
@@ -38,15 +38,7 @@ export const STAFF_CREDENTIALS = {
     password: 'kasir2026',
     role: 'kasir' as UserRole,
     name: 'Kang Asep Supriatna',
-    title: 'Kasir POS Meja Utama'
-  },
-  kitchen: {
-    id: 'usr-kitchen-01',
-    email: 'dapur@bumiupi.id',
-    password: 'dapur2026',
-    role: 'kitchen' as UserRole,
-    name: 'Kang Dadang Permana',
-    title: 'Kepala Dapur & Live KDS'
+    title: 'Kasir POS & Front-Of-House'
   }
 };
 
@@ -107,8 +99,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const quickSwitch = (role: UserRole) => {
-    const cred = STAFF_CREDENTIALS[role];
+  const quickSwitch = (role: UserRole | string) => {
+    const targetRole: UserRole = role === 'admin' ? 'admin' : 'kasir';
+    const cred = STAFF_CREDENTIALS[targetRole];
     if (cred) {
       const newUser: AuthUser = {
         id: cred.id,
@@ -140,21 +133,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: true };
     }
 
-    // 2. Validasi Kasir POS
+    // 2. Validasi Kasir POS (atau alias dapur diarahkan ke kasir)
     if (
-      (cleanId === STAFF_CREDENTIALS.kasir.email.toLowerCase() || cleanId === 'kasir') &&
-      (cleanPass === STAFF_CREDENTIALS.kasir.password || cleanPass === 'kasir2026!' || cleanPass === 'BumiUpiKasir2026!')
+      (cleanId === STAFF_CREDENTIALS.kasir.email.toLowerCase() || cleanId === 'kasir' || cleanId === 'dapur@bumiupi.id' || cleanId === 'dapur') &&
+      (cleanPass === STAFF_CREDENTIALS.kasir.password || cleanPass === 'kasir2026!' || cleanPass === 'BumiUpiKasir2026!' || cleanPass === 'dapur2026!')
     ) {
       quickSwitch('kasir');
-      return { success: true };
-    }
-
-    // 3. Validasi Kepala Dapur KDS
-    if (
-      (cleanId === STAFF_CREDENTIALS.kitchen.email.toLowerCase() || cleanId === 'dapur') &&
-      (cleanPass === STAFF_CREDENTIALS.kitchen.password || cleanPass === 'dapur2026!')
-    ) {
-      quickSwitch('kitchen');
       return { success: true };
     }
 

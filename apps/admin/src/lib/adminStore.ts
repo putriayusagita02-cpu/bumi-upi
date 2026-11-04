@@ -265,15 +265,63 @@ export class AdminStore {
     let hasChanges = false;
 
     for (const inc of incomingOrders) {
+      // Cari profil pelanggan jika nama belum terisi lengkap
+      const matchedCust = (inc.customerId || inc.customerPhone)
+        ? this.customers.find((c) => (inc.customerId && c.id === inc.customerId) || (inc.customerPhone && c.phone === inc.customerPhone))
+        : null;
+
+      const rawName = inc.customerName?.trim();
+      const resolvedName = (rawName && rawName !== 'Pelanggan Member' && rawName !== 'Tamu Mandiri (Web)')
+        ? rawName
+        : (matchedCust ? matchedCust.name : (inc.customerId ? 'Pelanggan Member' : 'Tamu Mandiri (Web)'));
+
+      // Sinkronkan ke daftar pelanggan CRM jika nama spesifik tersedia
+      if (resolvedName && resolvedName !== 'Tamu Mandiri (Web)' && resolvedName !== 'Pelanggan Member') {
+        const custIdx = this.customers.findIndex(
+          (c) => (inc.customerId && c.id === inc.customerId) ||
+                 (inc.customerPhone && c.phone === inc.customerPhone) ||
+                 c.name.toLowerCase() === resolvedName.toLowerCase()
+        );
+
+        if (custIdx >= 0) {
+          this.customers[custIdx].monetaryTotal += (inc.finalAmount || 0);
+          this.customers[custIdx].frequencyCount += 1;
+          this.customers[custIdx].recencyDays = 0;
+          this.customers[custIdx].lastVisitWib = 'Hari Ini';
+        } else {
+          this.customers.unshift({
+            id: inc.customerId || `cust-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            name: resolvedName,
+            email: `${resolvedName.toLowerCase().replace(/[^a-z0-9]/g, '')}@bumiupi.id`,
+            phone: inc.customerPhone || '0812' + Math.floor(10000000 + Math.random() * 90000000),
+            tier: inc.customerTier || 'Tamu',
+            pointsBalance: inc.pointsEarned || 50,
+            cumulativePoints: inc.pointsEarned || 50,
+            qrCode: `BUMI-CUST-${resolvedName.slice(0, 3).toUpperCase()}`,
+            recencyDays: 0,
+            frequencyCount: 1,
+            monetaryTotal: inc.finalAmount || 0,
+            rScore: 5,
+            fScore: 3,
+            mScore: 4,
+            rfmScore: '534',
+            segment: 'Potensial',
+            clvEstimate: (inc.finalAmount || 0) * 3,
+            lastVisitWib: 'Hari Ini'
+          });
+          hasChanges = true;
+        }
+      }
+
       if (!existingMap.has(inc.id)) {
         const record: OrderRecord = {
           id: inc.id,
           orderNumber: inc.orderNumber || `BU-ORD-${inc.id.slice(-6)}`,
           idempotencyKey: inc.idempotencyKey || inc.id,
           customerId: inc.customerId || undefined,
-          customerName: inc.customerName || (inc.customerId ? 'Pelanggan Member' : 'Tamu Mandiri (Web)'),
-          customerPhone: inc.customerPhone || undefined,
-          customerTier: inc.customerTier || 'Tamu',
+          customerName: resolvedName,
+          customerPhone: inc.customerPhone || matchedCust?.phone || undefined,
+          customerTier: inc.customerTier || matchedCust?.tier || 'Tamu',
           cashierId: inc.cashierId || 'web-self-service',
           cashierName: inc.cashierName || 'Pemesanan Web Mandiri',
           orderType: inc.orderType || 'dine_in',
@@ -306,6 +354,10 @@ export class AdminStore {
         const existing = existingMap.get(inc.id)!;
         if (inc.status && inc.status !== existing.status) {
           existing.status = inc.status;
+          hasChanges = true;
+        }
+        if (resolvedName && resolvedName !== 'Pelanggan Member' && existing.customerName !== resolvedName) {
+          existing.customerName = resolvedName;
           hasChanges = true;
         }
       }

@@ -44,9 +44,12 @@ export default function CrmPage() {
 
     const fetchCustomers = async () => {
       try {
-        await adminStore.syncLiveCustomersFromApi();
-        if (adminStore.customers && adminStore.customers.length > 0) {
-          setCustomers([...adminStore.customers]);
+        const res = await fetch('/api/crm/customers', { cache: 'no-store' });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.customers)) {
+          setCustomers(data.customers);
+          adminStore.customers = data.customers;
+          adminStore.saveToStorage();
         }
       } catch (e) {
         console.warn('Failed to sync live customers', e);
@@ -54,7 +57,7 @@ export default function CrmPage() {
     };
 
     fetchCustomers();
-    const interval = setInterval(fetchCustomers, 3000);
+    const interval = setInterval(fetchCustomers, 2500);
     return () => clearInterval(interval);
   }, []);
 
@@ -130,11 +133,22 @@ export default function CrmPage() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => alert('Daftar 200 pelanggan diekspor dalam format CSV/Excel untuk kampanye CRM!')}
-            className="px-3.5 py-1.5 rounded-xl border border-krem-border bg-krem-surface hover:bg-krem text-xs font-semibold text-kopi flex items-center gap-1.5 transition"
+            onClick={() => {
+              const headers = 'ID,Nama,No HP,Tier,Poin,Total Belanja,Frekuensi,Segmen RFM\n';
+              const rows = customers
+                .map((c) => `"${c.id}","${c.name}","${c.phone}","${c.tier}",${c.pointsBalance},${c.monetaryTotal},${c.frequencyCount},"${c.segment}"`)
+                .join('\n');
+              const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `CRM_Member_Bumi_Upi_${new Date().toISOString().slice(0, 10)}.csv`;
+              a.click();
+            }}
+            className="px-3.5 py-1.5 rounded-xl border border-krem-border bg-krem-surface hover:bg-krem text-xs font-semibold text-kopi flex items-center gap-1.5 transition shadow-2xs"
           >
             <Download className="w-3.5 h-3.5 text-terakota" />
-            <span>Ekspor Data Member</span>
+            <span>Ekspor Data Member ({totalCustomers})</span>
           </button>
         </div>
       </div>

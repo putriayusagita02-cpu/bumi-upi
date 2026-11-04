@@ -94,6 +94,45 @@ export async function GET() {
     }
   } catch {}
 
+  // 5. Muat pelanggan dinamis dari pesanan live (Orders)
+  for (const ord of adminStore.orders) {
+    const custName = ord.customerName?.trim();
+    if (custName && custName !== 'Tamu Mandiri (Web)' && custName !== 'Pelanggan Member') {
+      const key = ord.customerId || ord.customerPhone || custName;
+      if (!mergedMap.has(key)) {
+        const profile: CustomerProfile = {
+          id: ord.customerId || `cust-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          name: custName,
+          email: `${custName.toLowerCase().replace(/[^a-z0-9]/g, '')}@bumiupi.id`,
+          phone: ord.customerPhone || '0812' + Math.floor(10000000 + Math.random() * 90000000),
+          tier: ord.customerTier || 'Tamu',
+          pointsBalance: ord.pointsEarned || 50,
+          cumulativePoints: ord.pointsEarned || 50,
+          qrCode: `BUMI-CUST-${custName.slice(0, 3).toUpperCase()}`,
+          recencyDays: 0,
+          frequencyCount: 1,
+          monetaryTotal: ord.finalAmount || 0,
+          rScore: 5,
+          fScore: 3,
+          mScore: 4,
+          rfmScore: '534',
+          segment: 'Potensial',
+          clvEstimate: (ord.finalAmount || 0) * 3,
+          lastVisitWib: 'Hari Ini'
+        };
+        mergedMap.set(key, profile);
+        if (profile.phone) mergedMap.set(profile.phone, profile);
+        if (profile.id) mergedMap.set(profile.id, profile);
+      } else {
+        const existing = mergedMap.get(key)!;
+        existing.monetaryTotal += (ord.finalAmount || 0);
+        existing.frequencyCount += 1;
+        existing.recencyDays = 0;
+        existing.lastVisitWib = 'Hari Ini';
+      }
+    }
+  }
+
   const list = Array.from(new Set(mergedMap.values()));
 
   return NextResponse.json(

@@ -10,7 +10,9 @@ import {
   UtensilsCrossed,
   ScrollText,
   ExternalLink,
-  Bot
+  Bot,
+  BarChart3,
+  Crown
 } from 'lucide-react';
 import { useAuth, UserRole } from '../lib/authContext';
 import { adminStore } from '../lib/adminStore';
@@ -25,6 +27,27 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   {
+    name: 'Executive Owner Dashboard',
+    href: '/',
+    icon: BarChart3,
+    badge: '👑 Owner',
+    roles: ['admin']
+  },
+  {
+    name: 'CRM Pelanggan RFM',
+    href: '/crm',
+    icon: Users,
+    badge: '7 Segmen',
+    roles: ['admin']
+  },
+  {
+    name: 'Audit Finansial & Void',
+    href: '/audit',
+    icon: ScrollText,
+    badge: 'Aman',
+    roles: ['admin']
+  },
+  {
     name: 'POS Kasir Cepat',
     href: '/pos',
     icon: CreditCard,
@@ -36,14 +59,7 @@ const NAV_ITEMS: NavItem[] = [
     href: '/kitchen',
     icon: ChefHat,
     badge: 'Live',
-    roles: ['admin', 'kasir', 'kitchen']
-  },
-  {
-    name: 'CRM Pelanggan RFM',
-    href: '/crm',
-    icon: Users,
-    badge: '7 Segmen',
-    roles: ['admin']
+    roles: ['admin', 'kasir']
   },
   {
     name: 'Inventaris Stok',
@@ -51,13 +67,6 @@ const NAV_ITEMS: NavItem[] = [
     icon: UtensilsCrossed,
     badge: '105 Item',
     roles: ['admin', 'kasir']
-  },
-  {
-    name: 'Audit Trail Log',
-    href: '/audit',
-    icon: ScrollText,
-    badge: 'Aman',
-    roles: ['admin']
   }
 ];
 
@@ -106,14 +115,19 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
 
         {/* Navigation list */}
         <nav className="p-3 space-y-1">
-          <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-krem/50 font-sans">
-            Menu Operasional Restoran
+          <div className="px-3 py-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-krem/70 font-sans border-b border-olive-700/60 pb-1.5 mb-2">
+            <span>{user?.role === 'admin' ? '👑 Menu Eksekutif Owner' : '💼 Menu Kasir Operasional'}</span>
+            <span className="px-1.5 py-0.2 rounded bg-olive-700 text-mustard-light font-mono text-[9px]">
+              {user?.role === 'admin' ? 'Owner' : 'Kasir'}
+            </span>
           </div>
 
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter((item) => {
+            if (!user) return true;
+            return !item.roles || item.roles.includes(user.role);
+          }).map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
-            const isRestricted = item.roles && user && !item.roles.includes(user.role);
 
             const badgeText = item.href === '/kitchen' && kdsCount > 0
               ? `${kdsCount} Tiket`
@@ -127,8 +141,6 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
                 className={`flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
                   isActive
                     ? 'bg-krem text-olive-900 font-bold shadow-md'
-                    : isRestricted
-                    ? 'text-krem/40 hover:bg-olive-600/40'
                     : 'text-krem hover:bg-olive-600/60 hover:text-white'
                 }`}
               >

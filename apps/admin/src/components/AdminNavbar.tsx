@@ -115,23 +115,23 @@ export function AdminNavbar({ onToggleMobileMenu }: AdminNavbarProps = {}) {
             <ExternalLink className="w-3.5 h-3.5 text-terakota" />
           </a>
 
-          {/* Pengalih Peran Staf Operasional (Hanya Admin, Kasir, Dapur) */}
+          {/* Pengalih Peran Staf Operasional (Hanya Owner dan Kasir) */}
           <div className="hidden sm:flex items-center gap-1 bg-krem-surface border border-krem-border p-1 rounded-xl text-xs">
             <button
               onClick={() => quickSwitch('admin')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                 user?.role === 'admin'
                   ? 'bg-olive text-white shadow-xs'
                   : 'text-olive-800 hover:bg-olive-100'
               }`}
-              title="Masuk sebagai Owner / Administrator"
+              title="Masuk sebagai Owner / Pemilik Restoran"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Admin (Owner)</span>
+              <span>👑 Owner</span>
             </button>
             <button
               onClick={() => quickSwitch('kasir')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                 user?.role === 'kasir'
                   ? 'bg-amber-700 text-white shadow-xs'
                   : 'text-amber-900 hover:bg-amber-100'
@@ -139,19 +139,7 @@ export function AdminNavbar({ onToggleMobileMenu }: AdminNavbarProps = {}) {
               title="Masuk sebagai Kasir POS Meja"
             >
               <UserCheck className="w-3.5 h-3.5" />
-              <span>Kasir (Kang Asep)</span>
-            </button>
-            <button
-              onClick={() => quickSwitch('kitchen')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                user?.role === 'kitchen'
-                  ? 'bg-emerald-700 text-white shadow-xs'
-                  : 'text-emerald-900 hover:bg-emerald-100'
-              }`}
-              title="Masuk sebagai Kepala Dapur KDS"
-            >
-              <ChefHat className="w-3.5 h-3.5" />
-              <span>Dapur (Kang Dadang)</span>
+              <span>💼 Kasir (Kang Asep)</span>
             </button>
           </div>
 
@@ -161,12 +149,21 @@ export function AdminNavbar({ onToggleMobileMenu }: AdminNavbarProps = {}) {
               <div className="text-right">
                 <div className="text-xs font-bold text-kopi leading-none">{user.name}</div>
                 <div className="text-[10px] text-kopi-muted flex items-center justify-end gap-1 pt-0.5">
-                  {user.role === 'admin' && <ShieldCheck className="w-3 h-3 text-olive-600" />}
-                  {user.role === 'kasir' && <UserCheck className="w-3 h-3 text-amber-600" />}
-                  {user.role === 'kitchen' && <ChefHat className="w-3 h-3 text-emerald-600" />}
-                  <span className="font-bold uppercase tracking-wider text-terakota-dark">
-                    {user.role === 'admin' ? 'Owner / Admin' : user.role === 'kasir' ? 'Kasir POS' : 'Dapur KDS'}
-                  </span>
+                  {user.role === 'admin' ? (
+                    <>
+                      <ShieldCheck className="w-3 h-3 text-olive-600" />
+                      <span className="font-bold uppercase tracking-wider text-olive-800">
+                        👑 Owner Restoran
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <UserCheck className="w-3 h-3 text-amber-600" />
+                      <span className="font-bold uppercase tracking-wider text-amber-800">
+                        💼 Kasir POS
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
               <button
