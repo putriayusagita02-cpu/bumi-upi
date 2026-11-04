@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { QrCode, ArrowLeft, CheckCircle2, Clock, ShieldCheck } from '../../components/icons';
+import { QrCode, ArrowLeft, CheckCircle2, Clock, ShieldCheck, Users } from '../../components/icons';
+import { SplitBillModal } from '../../components/SplitBillModal';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [countdown, setCountdown] = useState(900); // 15 minutes timer
+  const [isSplitBillOpen, setIsSplitBillOpen] = useState(false);
 
   useEffect(() => {
     if (countdown <= 0) return;
@@ -301,6 +303,16 @@ export default function CheckoutPage() {
               </>
             )}
           </button>
+
+          {/* Split Bill Option */}
+          <button
+            type="button"
+            onClick={() => setIsSplitBillOpen(true)}
+            className="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-[#EFE4CB] hover:bg-[#E2D4B7] text-[#2B2625] border border-[#D4A24C]/60 transition flex items-center justify-center gap-2 shadow-2xs"
+          >
+            <Users className="w-4 h-4 text-[#3E4F30]" />
+            <span>👥 Hitung Bagi Tagihan / Split Bill Meja</span>
+          </button>
         </div>
 
         {/* Right: Order Summary Details */}
@@ -375,6 +387,25 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      {/* Split Bill Modal */}
+      <SplitBillModal
+        isOpen={isSplitBillOpen}
+        onClose={() => setIsSplitBillOpen(false)}
+        orderNumber="PRA-PESAN"
+        tableNumber={orderType === 'dine_in' ? tableNumber : 'Takeaway'}
+        items={items.map((it) => ({
+          itemName: it.menuItem.name,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+          notes: it.customization.notes,
+          size: it.customization.size,
+          temp: it.customization.temp,
+        }))}
+        finalAmount={totalAmount}
+        subtotal={subtotal}
+        discountAmount={discountAmount}
+      />
     </div>
   );
 }

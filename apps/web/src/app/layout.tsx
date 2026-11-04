@@ -6,6 +6,7 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { UpiChatDrawer } from '../components/UpiChatDrawer';
 import { OtpHelperToastContainer } from '../components/OtpHelperToastContainer';
+import { AsmrAmbientPlayer } from '../components/AsmrAmbientPlayer';
 
 export const metadata: Metadata = {
   title: 'Rumah Tamah Bumi Upi — F&B & Ordering Garut Heritage',
@@ -28,6 +29,7 @@ export default function RootLayout({
           </main>
           <Footer />
           <UpiChatDrawer />
+          <AsmrAmbientPlayer />
           <OtpHelperToastContainer />
         </Providers>
       </body>

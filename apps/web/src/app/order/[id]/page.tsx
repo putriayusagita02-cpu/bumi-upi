@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { OrderRecord, OrderStatus } from '../../../lib/types';
-import { CheckCircle2, Clock, Utensils, ArrowRight, Sparkles, Check } from '../../../components/icons';
+import { CheckCircle2, Clock, Utensils, ArrowRight, Sparkles, Check, Users, QrCode } from '../../../components/icons';
+import { SplitBillModal } from '../../../components/SplitBillModal';
 
 export default function OrderTrackerPage() {
   const params = useParams();
@@ -15,6 +16,7 @@ export default function OrderTrackerPage() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'tracker' | 'postal_receipt'>('tracker');
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isSplitBillOpen, setIsSplitBillOpen] = useState(false);
 
   const steps: { key: OrderStatus; label: string; desc: string }[] = [
     { key: 'confirmed', label: 'Menunggu Konfirmasi', desc: 'Pesanan diterima & dicatat sistem' },
@@ -251,32 +253,47 @@ export default function OrderTrackerPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-12">
-      {/* Switcher: Pelacak Modern vs Struk Kartu Pos Tempo Doeloe */}
-      <div className="flex items-center justify-between bg-[#FBF7EE] p-2 rounded-2xl border border-[#E8DCC2]">
-        <button
-          type="button"
-          onClick={() => setViewMode('tracker')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-            viewMode === 'tracker'
-              ? 'bg-[#3E4F30] text-[#F5EEDC] shadow-sm'
-              : 'text-[#634E3F] hover:text-[#2B2625]'
-          }`}
-        >
-          <span>⏱️ Pelacak Status Meja</span>
-        </button>
+      {/* Switcher: Pelacak Modern vs Struk Kartu Pos Tempo Doeloe + Split Bill Trigger */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+        <div className="flex-1 flex items-center justify-between bg-[#FBF7EE] p-1.5 rounded-2xl border border-[#E8DCC2]">
+          <button
+            type="button"
+            onClick={() => setViewMode('tracker')}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+              viewMode === 'tracker'
+                ? 'bg-[#3E4F30] text-[#F5EEDC] shadow-sm'
+                : 'text-[#634E3F] hover:text-[#2B2625]'
+            }`}
+          >
+            <span>⏱️ Pelacak Meja</span>
+          </button>
 
+          <button
+            type="button"
+            onClick={() => setViewMode('postal_receipt')}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+              viewMode === 'postal_receipt'
+                ? 'bg-[#B4532A] text-white shadow-sm'
+                : 'text-[#634E3F] hover:text-[#2B2625]'
+            }`}
+          >
+            <span>📜 Struk Kartu Pos</span>
+            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-white/20">
+              Sunda
+            </span>
+          </button>
+        </div>
+
+        {/* Button Split Bill Highlight */}
         <button
           type="button"
-          onClick={() => setViewMode('postal_receipt')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-            viewMode === 'postal_receipt'
-              ? 'bg-[#B4532A] text-white shadow-sm'
-              : 'text-[#634E3F] hover:text-[#2B2625]'
-          }`}
+          onClick={() => setIsSplitBillOpen(true)}
+          className="py-2.5 px-4 rounded-2xl bg-gradient-to-r from-[#D4A24C] to-[#B4532A] text-white text-xs font-bold hover:brightness-110 active:scale-95 transition shadow-sm flex items-center justify-center gap-2"
         >
-          <span>📜 Struk Kartu Pos Tempo Doeloe</span>
-          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20">
-            Aksara Sunda
+          <Users className="w-4 h-4 text-white" />
+          <span>Bagi Tagihan / Split Bill</span>
+          <span className="text-[10px] bg-white/25 px-1.5 py-0.2 rounded-full font-bold">
+            QRIS
           </span>
         </button>
       </div>
@@ -300,14 +317,25 @@ export default function OrderTrackerPage() {
                 <p className="font-mono text-xs text-[#634E3F]">{order?.orderNumber}</p>
               </div>
 
-              <div className="text-left sm:text-right">
-                <span className="text-[10px] text-[#8C7767] uppercase block">Total Bayar</span>
-                <span className="font-serif text-xl font-black text-[#B4532A]">
-                  Rp {order?.finalAmount.toLocaleString('id-ID')}
-                </span>
-                <p className="text-[10px] text-[#3E4F30] font-semibold">
-                  ✓ Lunas ({order?.paymentMethod.toUpperCase()})
-                </p>
+              <div className="text-left sm:text-right space-y-1">
+                <div>
+                  <span className="text-[10px] text-[#8C7767] uppercase block">Total Bayar</span>
+                  <span className="font-serif text-xl font-black text-[#B4532A]">
+                    Rp {order?.finalAmount.toLocaleString('id-ID')}
+                  </span>
+                  <p className="text-[10px] text-[#3E4F30] font-semibold">
+                    ✓ Lunas ({order?.paymentMethod.toUpperCase()})
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsSplitBillOpen(true)}
+                  className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-[#EFE4CB] hover:bg-[#E2D4B7] text-[#2B2625] text-[10px] font-bold border border-[#D4A24C]/60 transition shadow-2xs"
+                >
+                  <Users className="w-3 h-3 text-[#3E4F30]" />
+                  <span>Patungan Meja Ini</span>
+                </button>
               </div>
             </div>
 
@@ -652,6 +680,19 @@ export default function OrderTrackerPage() {
             </div>
           </div>
         </div>
+      )}
+      {/* Modal Split Bill Meja & Patungan QRIS Instan */}
+      {order && (
+        <SplitBillModal
+          isOpen={isSplitBillOpen}
+          onClose={() => setIsSplitBillOpen(false)}
+          orderNumber={order.orderNumber}
+          tableNumber={order.tableNumber}
+          items={order.items || []}
+          finalAmount={order.finalAmount}
+          subtotal={order.subtotal}
+          discountAmount={order.discountAmount}
+        />
       )}
     </div>
   );
