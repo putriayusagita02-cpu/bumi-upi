@@ -142,14 +142,8 @@ function MenuCatalogContent() {
     const isOut = live ? (live.stock <= 0 || !live.isAvailable) : false;
     if (isOut) return;
 
-    // If item has variants or multiple temps, open modal
-    if (item.variants || (item.temps && item.temps.length > 1)) {
-      setActiveModalItem(item);
-    } else {
-      addItem(item, {}, 1);
-      setAddedSuccessId(item.id);
-      setTimeout(() => setAddedSuccessId(null), 1500);
-    }
+    // Buka modal kustomisasi & pilihan porsi (bisa pilih 1, 2, 3, 4 atau ketik langsung 10)
+    setActiveModalItem(item);
   };
 
   return (
@@ -525,7 +519,7 @@ function MenuCatalogContent() {
                     ) : (
                       <>
                         <Plus className="w-3.5 h-3.5" />
-                        <span>{hasVariants || hasTemps ? 'Kustomisasi' : 'Tambah'}</span>
+                        <span>Pesan (1, 2, 3...)</span>
                       </>
                     )}
                   </button>

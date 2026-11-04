@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CartItem, MenuItem, CartCustomization, Voucher, OrderType } from '../lib/types';
 import { MOCK_VOUCHERS } from '../lib/catalogData';
+import { asmrAudioEngine } from '../lib/asmrAudioEngine';
 
 interface CartContextType {
   items: CartItem[];
@@ -13,6 +14,7 @@ interface CartContextType {
   addItem: (item: MenuItem, customization?: CartCustomization, quantity?: number) => void;
   removeItem: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, delta: number) => void;
+  setItemQuantity: (cartItemId: string, exactQty: number) => void;
   clearCart: () => void;
   appliedVoucher: Voucher | null;
   applyVoucher: (voucher: Voucher | null) => { success: boolean; message: string };
@@ -111,6 +113,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       ];
     });
+
+    try {
+      asmrAudioEngine.playItemAddedChime();
+    } catch {}
   };
 
   const removeItem = (cartItemId: string) => {
@@ -129,6 +135,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         })
         .filter((it): it is CartItem => it !== null)
     );
+
+    if (delta > 0) {
+      try {
+        asmrAudioEngine.playItemAddedChime();
+      } catch {}
+    }
+  };
+
+  const setItemQuantity = (cartItemId: string, exactQty: number) => {
+    const validQty = Math.max(1, Math.min(999, Math.floor(exactQty)));
+    setItems((prev) =>
+      prev.map((it) => (it.cartItemId === cartItemId ? { ...it, quantity: validQty } : it))
+    );
+    try {
+      asmrAudioEngine.playItemAddedChime();
+    } catch {}
   };
 
   const clearCart = () => {
@@ -194,6 +216,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addItem,
         removeItem,
         updateQuantity,
+        setItemQuantity,
         clearCart,
         appliedVoucher,
         applyVoucher,

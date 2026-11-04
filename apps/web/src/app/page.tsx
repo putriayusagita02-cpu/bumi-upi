@@ -503,7 +503,7 @@ function GuestLanding() {
   const faqs = [
     {
       q: 'Bagaimana cara mendaftar menjadi anggota Keluarga Bumi?',
-      a: 'Sangat mudah! Cukup klik tombol "Mari Bertamu", masukkan nama dan nomor WhatsApp aktif Anda. Sistem akan menyiapkan kode verifikasi OTP 6 digit. Setelah terverifikasi, kartu digital Anda langsung aktif dengan bonus 50 Poin.'
+      a: 'Sangat mudah! Cukup klik tombol "Daftar Akun", masukkan nama dan nomor WhatsApp aktif Anda. Sistem akan menyiapkan kode verifikasi OTP 6 digit. Setelah terverifikasi, kartu digital Anda langsung aktif dengan bonus 50 Poin.'
     },
     {
       q: 'Apakah poin loyalitas Bumi Upi memiliki masa kedaluwarsa?',
@@ -569,7 +569,7 @@ function GuestLanding() {
               >
                 <span className="text-xl group-hover:scale-110 transition-transform">🏡</span>
                 <div className="text-left">
-                  <span className="block leading-tight font-extrabold text-white text-xs sm:text-sm">Mari Mampir Bertamu</span>
+                  <span className="block leading-tight font-extrabold text-white text-xs sm:text-sm">Daftar Akun Baru</span>
                   <span className="text-[10px] text-[#FBE8E3] font-normal block">Dapatkan 50 Poin & Traktiran</span>
                 </div>
               </Link>
@@ -809,7 +809,7 @@ function GuestLanding() {
                 className="py-3 px-4 rounded-xl border border-[#D5C7B0] text-xs font-bold text-[#2B2625] hover:bg-white flex items-center gap-1.5"
               >
                 <span>🔑</span>
-                <span>Sudah Jadi Baraya? Ketuk Pintu</span>
+                <span>Sudah Punya Akun? Masuk</span>
               </Link>
             </div>
           </div>

@@ -143,7 +143,7 @@ export const TerasModal: React.FC<TerasModalProps> = ({ isOpen, onClose }) => {
               className="py-2.5 px-4 rounded-xl bg-[#B4532A] text-white text-xs font-bold hover:brightness-110 shadow-xs flex items-center gap-1.5"
             >
               <span>🏡</span>
-              <span>Mari Bertamu Sekarang</span>
+              <span>Daftar Akun Sekarang</span>
             </Link>
             <button
               type="button"

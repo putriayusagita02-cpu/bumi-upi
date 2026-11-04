@@ -26,7 +26,6 @@ export const Navbar: React.FC = () => {
       ]
     : [
         { href: '/', label: 'Beranda' },
-        { href: '/photobooth', label: '📸 Photobox' },
         { href: '/wedding', label: 'Pernikahan & Event' },
       ];
 
@@ -129,23 +128,23 @@ export const Navbar: React.FC = () => {
                 </Link>
               </>
             ) : (
-              /* Belum Login: Nuansa Ramah Sunda "Ketuk Pintu" & "Mari Bertamu" */
+              /* Belum Login: Tombol Masuk & Daftar Akun */
               <div className="flex items-center gap-2">
                 <Link
                   href="/auth?mode=login"
                   className="py-2 px-3.5 rounded-xl border border-[#3E4F30] text-[#3E4F30] text-xs font-bold hover:bg-[#3E4F30]/10 transition flex items-center gap-1.5"
-                  title="Sudah jadi baraya? Ketuk pintu masuk"
+                  title="Masuk ke Akun"
                 >
                   <span className="text-xs">🔑</span>
-                  <span>Ketuk Pintu</span>
+                  <span>Masuk</span>
                 </Link>
                 <Link
                   href="/auth?mode=register"
                   className="py-2 px-3.5 rounded-xl bg-[#B4532A] text-white text-xs font-bold hover:brightness-110 shadow-xs transition flex items-center gap-1.5"
-                  title="Mari bertamu & dapatkan kartu baraya"
+                  title="Daftar Akun Baru"
                 >
                   <span className="text-xs">🏡</span>
-                  <span>Mari Bertamu</span>
+                  <span>Daftar Akun</span>
                 </Link>
               </div>
             )}

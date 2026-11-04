@@ -31,6 +31,7 @@ function AuthContent() {
 
   // Mode: 'login' vs 'register'
   const initialMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
+  const redirectTarget = searchParams.get('redirect') || '/member';
   const [authTab, setAuthTab] = useState<'login' | 'register'>(initialMode);
 
   // Steps: 'form' -> 'otp'
@@ -205,7 +206,7 @@ function AuthContent() {
     if (res.success) {
       setIsSuccess(true);
       setTimeout(() => {
-        router.push('/member');
+        router.push(redirectTarget);
       }, 900);
     } else {
       setStatusMsg({ text: res.error || 'Kode OTP tidak sesuai. Silakan coba lagi.', type: 'error' });
@@ -263,12 +264,12 @@ function AuthContent() {
                 className="font-serif text-2xl font-bold text-[#2B2625] pt-1"
                 style={{ fontFamily: 'var(--font-fraunces, "Fraunces", Georgia, serif)' }}
               >
-                {authTab === 'register' ? 'Mari Bertamu ke Keluarga Bumi' : 'Ketuk Pintu Rumah Nenek'}
+                {authTab === 'register' ? 'Daftar Akun Baru' : 'Masuk ke Akun Anda'}
               </h1>
               <p className="text-xs text-[#634E3F]">
                 {authTab === 'register'
                   ? 'Nikmati 50 Poin Bonus Sambutan & Voucher Traktiran Nenek Upi'
-                  : 'Masukkan nomor WhatsApp Baraya untuk mengecek poin & traktiran'}
+                  : 'Masukkan nomor WhatsApp Anda untuk masuk & cek saldo poin'}
               </p>
             </>
           ) : (
@@ -349,7 +350,7 @@ function AuthContent() {
               }`}
             >
               <span className="text-sm">🔑</span>
-              <span>Ketuk Pintu</span>
+              <span>Masuk</span>
             </button>
             <button
               type="button"
@@ -364,7 +365,7 @@ function AuthContent() {
               }`}
             >
               <span className="text-sm">🏡</span>
-              <span>Mari Bertamu</span>
+              <span>Daftar Akun</span>
             </button>
           </div>
         )}
@@ -640,7 +641,7 @@ function AuthContent() {
                     type="button"
                     onClick={() => {
                       switchCustomer(u);
-                      router.push('/member');
+                      router.push(redirectTarget);
                     }}
                     className={`p-2.5 rounded-xl border text-left transition-all ${
                       isCurrent

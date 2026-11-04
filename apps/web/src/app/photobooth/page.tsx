@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface FrameTemplate {
   id: string;
@@ -72,6 +73,7 @@ const FILTERS = [
 
 export default function PhotoboothPage() {
   const { tableNumber } = useCart();
+  const { customer, isLoggedIn, isInitialized } = useAuth();
 
   // Mode: 'camera' | 'upload'
   const [captureMode, setCaptureMode] = useState<'camera' | 'upload'>('camera');
@@ -84,7 +86,7 @@ export default function PhotoboothPage() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [generatedStripUrl, setGeneratedStripUrl] = useState<string | null>(null);
-  const [customerName, setCustomerName] = useState<string>('');
+  const [customerName, setCustomerName] = useState<string>(customer?.name || '');
   const [customerTable, setCustomerTable] = useState<string>(tableNumber !== 'Takeaway' ? tableNumber : 'Meja 04');
   const [showOrderModal, setShowOrderModal] = useState<boolean>(false);
   const [customCaption, setCustomCaption] = useState<string>('');
@@ -93,6 +95,12 @@ export default function PhotoboothPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (customer?.name) {
+      setCustomerName(customer.name);
+    }
+  }, [customer]);
 
   // Inisialisasi Kamera
   const startCamera = useCallback(async () => {
@@ -122,7 +130,7 @@ export default function PhotoboothPage() {
   }, [facingMode]);
 
   useEffect(() => {
-    if (captureMode === 'camera') {
+    if (isLoggedIn && captureMode === 'camera') {
       startCamera();
     }
     return () => {
@@ -130,7 +138,7 @@ export default function PhotoboothPage() {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [captureMode, startCamera]);
+  }, [captureMode, startCamera, isLoggedIn]);
 
   // Tombol Ganti Kamera Depan / Belakang
   const handleToggleCamera = () => {
@@ -391,6 +399,80 @@ export default function PhotoboothPage() {
     window.open(waUrl, '_blank');
     setShowOrderModal(false);
   };
+
+  if (!isInitialized) {
+    return (
+      <div className="py-24 text-center text-xs text-[#634E3F]">
+        Sedang menyiapkan Bilik Photobox Bumi Upi...
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="max-w-xl mx-auto py-12 px-4 space-y-6">
+        <div className="p-8 sm:p-10 rounded-3xl bg-[#FBF7EE] border-2 border-[#D4A24C] shadow-xl text-center space-y-5">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-[#3E4F30] text-[#D4A24C] flex items-center justify-center text-3xl shadow-sm border border-[#D4A24C]/40">
+            📸
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#B4532A] px-3 py-1 rounded-full bg-[#FCE7DF] border border-[#B4532A]/30">
+              🔒 Akses Khusus Baraya Terdaftar
+            </span>
+            <h1
+              className="font-serif text-2xl sm:text-3xl font-bold text-[#2B2625] pt-2"
+              style={{ fontFamily: 'var(--font-fraunces, "Fraunces", Georgia, serif)' }}
+            >
+              Bilik Photobox Bumi Upi
+            </h1>
+            <p className="text-xs sm:text-sm text-[#634E3F] leading-relaxed max-w-md mx-auto">
+              Fasilitas 4-pose vintage & cetak kenangan Rumah Nenek hanya dapat diakses oleh Baraya yang telah masuk atau memiliki akun terdaftar.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#F5EEDC]/70 border border-[#E8DCC2] text-xs text-[#2B2625] text-left space-y-2">
+            <p className="font-bold text-[#3E4F30] flex items-center gap-1.5">
+              <span>✨</span>
+              <span>Keuntungan Baraya Masuk Akun:</span>
+            </p>
+            <ul className="space-y-1 text-[11px] text-[#634E3F] list-disc list-inside">
+              <li>Ambil 4 pose bebas gaya dengan frame kayu jati & filter 1930</li>
+              <li>Unduh soft file strip HD langsung gratis ke galeri HP</li>
+              <li>Pesan cetak fisik vintage 2 strip langsung diantar ke meja kasir</li>
+              <li>Kumpulkan poin kunjungan setiap berfoto & jajan di Bumi Upi</li>
+            </ul>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <Link
+              href="/auth?mode=login&redirect=/photobooth"
+              className="w-full sm:w-auto py-3 px-6 rounded-xl bg-[#3E4F30] text-[#F5EEDC] text-xs font-bold shadow-md hover:brightness-110 flex items-center justify-center gap-1.5 transition active:scale-95"
+            >
+              <span>🔑</span>
+              <span>Masuk ke Akun</span>
+            </Link>
+            <Link
+              href="/auth?mode=register&redirect=/photobooth"
+              className="w-full sm:w-auto py-3 px-6 rounded-xl bg-[#B4532A] text-white text-xs font-bold shadow-md hover:brightness-110 flex items-center justify-center gap-1.5 transition active:scale-95"
+            >
+              <span>🏡</span>
+              <span>Daftar Akun Baru</span>
+            </Link>
+          </div>
+
+          <div className="pt-2">
+            <Link
+              href="/"
+              className="text-xs text-[#8C7767] hover:text-[#2B2625] underline transition"
+            >
+              ← Kembali ke Beranda
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">

@@ -176,9 +176,36 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
 
           {/* Quantity Selector */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-[#2B2625] block mb-2">
-              Jumlah Pesanan
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-[#2B2625]">
+                Jumlah Pesanan (Porsi)
+              </label>
+              <span className="text-[11px] text-[#8C7767]">
+                Ketik atau pilih tombol cepat
+              </span>
+            </div>
+
+            {/* Quick Quantity Pills: 1, 2, 3, 4, 5, 10 */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[11px] text-[#634E3F] font-semibold">Beli Cepat:</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[1, 2, 3, 4, 5, 10].map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setQuantity(num)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-2xs ${
+                      quantity === num
+                        ? 'bg-[#B4532A] text-white ring-2 ring-[#B4532A]/30 scale-105'
+                        : 'bg-white border border-[#E8DCC2] text-[#2B2625] hover:bg-[#F5EEDC]'
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex items-center gap-4">
               <div className="flex items-center border border-[#E8DCC2] rounded-xl bg-white overflow-hidden shadow-xs">
                 <button
@@ -189,9 +216,19 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
                 >
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="px-4 font-mono font-bold text-sm text-[#2B2625]">
-                  {quantity}
-                </span>
+                <input
+                  type="number"
+                  min="1"
+                  max="999"
+                  value={quantity}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    setQuantity(isNaN(val) ? 1 : Math.max(1, Math.min(999, val)));
+                  }}
+                  className="w-16 text-center font-mono font-bold text-sm text-[#2B2625] border-x border-[#E8DCC2] py-2 focus:outline-none focus:bg-[#FFFDF9]"
+                  aria-label="Ketik jumlah pesanan langsung"
+                  title="Bisa ketik langsung jumlah pesanan (misal: 10)"
+                />
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => q + 1)}
@@ -201,9 +238,14 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
-              <span className="text-xs text-[#634E3F]">
-                Rp {currentUnitPrice.toLocaleString('id-ID')} / porsi
-              </span>
+              <div>
+                <span className="text-xs text-[#634E3F] block">
+                  Rp {currentUnitPrice.toLocaleString('id-ID')} / porsi
+                </span>
+                <span className="text-[10px] text-[#8C7767] italic">
+                  *Bisa langsung ketik angka (misal: 10)
+                </span>
+              </div>
             </div>
           </div>
 

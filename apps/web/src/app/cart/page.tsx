@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { MOCK_VOUCHERS } from '../../lib/catalogData';
 import { TableSelectorModal } from '../../components/TableSelectorModal';
 import { Plus, Minus, X, Ticket, ShoppingBag, Utensils, ArrowRight, ArrowLeft } from '../../components/icons';
+import { asmrAudioEngine } from '../../lib/asmrAudioEngine';
 
 export default function CartPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function CartPage() {
     tableNumber,
     orderType,
     updateQuantity,
+    setItemQuantity,
     removeItem,
     clearCart,
     subtotal,
@@ -33,6 +35,17 @@ export default function CartPage() {
   const [voucherError, setVoucherError] = useState('');
   const [voucherSuccess, setVoucherSuccess] = useState('');
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
+  const [isPlayingSoundtrack, setIsPlayingSoundtrack] = useState(false);
+
+  const toggleSoundtrack = () => {
+    if (isPlayingSoundtrack) {
+      asmrAudioEngine.stop();
+      setIsPlayingSoundtrack(false);
+    } else {
+      asmrAudioEngine.startOrderingAmbience();
+      setIsPlayingSoundtrack(true);
+    }
+  };
 
   const handleApplyVoucherCode = (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +150,40 @@ export default function CartPage() {
         </div>
       </div>
 
+      {/* Soundtrack Ambient Player (Sedang Memesan) */}
+      <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-[#3E4F30] via-[#465B36] to-[#2B3A21] text-[#F5EEDC] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 border border-[#D4A24C]/40">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-[#D4A24C]/20 border border-[#D4A24C]/40 flex items-center justify-center text-lg shrink-0">
+            {isPlayingSoundtrack ? '🎶' : '🎵'}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-xs tracking-wide">Soundtrack Alunan Menemani Pesanan Anda</span>
+              {isPlayingSoundtrack && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D4A24C] text-[#2B2625] font-bold animate-pulse">
+                  Sedang Mengalun ♫
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-[#E0D4BA] leading-tight">
+              Kacapi Pasundan & suasana ramah Rumah Nenek Garut menemani Anda memilih santapan.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={toggleSoundtrack}
+          className={`py-2 px-4 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center gap-1.5 active:scale-95 ${
+            isPlayingSoundtrack
+              ? 'bg-[#B4532A] text-white hover:brightness-110'
+              : 'bg-[#F5EEDC] text-[#3E4F30] hover:bg-white'
+          }`}
+        >
+          <span>{isPlayingSoundtrack ? '⏸ Jeda Soundtrack' : '▶ Putar Soundtrack (Kacapi Pasundan)'}</span>
+        </button>
+      </div>
+
       {/* Main Grid: Cart Items (Left) & Summary (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left: Item list */}
@@ -181,43 +228,77 @@ export default function CartPage() {
                 </div>
 
                 {/* Quantity Controls & Subtotal */}
-                <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
-                  <div className="flex items-center border border-[#E8DCC2] rounded-xl bg-white overflow-hidden shadow-2xs">
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center border border-[#E8DCC2] rounded-xl bg-white overflow-hidden shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(it.cartItemId, -1)}
+                        className="p-1.5 px-2 hover:bg-[#F5EEDC] text-[#2B2625] transition-colors"
+                        aria-label="Kurangi"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        max="999"
+                        value={it.quantity}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (!isNaN(val) && val >= 1) {
+                            setItemQuantity(it.cartItemId, val);
+                          }
+                        }}
+                        className="w-14 text-center font-mono font-bold text-xs text-[#2B2625] border-x border-[#E8DCC2] py-1.5 focus:outline-none focus:bg-[#FFFDF9]"
+                        aria-label="Ketik jumlah porsi langsung"
+                        title="Bisa ketik langsung (misal: 10)"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(it.cartItemId, 1)}
+                        className="p-1.5 px-2 hover:bg-[#F5EEDC] text-[#2B2625] transition-colors"
+                        aria-label="Tambah"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="text-right min-w-[5rem]">
+                      <span className="font-serif text-sm font-bold text-[#2B2625]">
+                        Rp {itemTotal.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+
                     <button
                       type="button"
-                      onClick={() => updateQuantity(it.cartItemId, -1)}
-                      className="p-1.5 hover:bg-[#F5EEDC] text-[#2B2625] transition-colors"
-                      aria-label="Kurangi"
+                      onClick={() => removeItem(it.cartItemId)}
+                      className="p-1 text-[#8C7767] hover:text-[#B4532A] transition-colors"
+                      title="Hapus dari keranjang"
                     >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="px-3 font-mono font-bold text-xs text-[#2B2625]">
-                      {it.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => updateQuantity(it.cartItemId, 1)}
-                      className="p-1.5 hover:bg-[#F5EEDC] text-[#2B2625] transition-colors"
-                      aria-label="Tambah"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <div className="text-right min-w-[5rem]">
-                    <span className="font-serif text-sm font-bold text-[#2B2625]">
-                      Rp {itemTotal.toLocaleString('id-ID')}
-                    </span>
+                  {/* Tombol Cepat Porsi: 1, 2, 3, 4, 10 */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] text-[#8C7767] font-medium">Beli Cepat:</span>
+                    {[1, 2, 3, 4, 10].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setItemQuantity(it.cartItemId, num)}
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${
+                          it.quantity === num
+                            ? 'bg-[#B4532A] text-white shadow-2xs'
+                            : 'bg-white border border-[#E8DCC2] text-[#634E3F] hover:bg-[#F5EEDC]'
+                        }`}
+                        title={`Atur ke ${num} porsi`}
+                      >
+                        {num}
+                      </button>
+                    ))}
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => removeItem(it.cartItemId)}
-                    className="p-1 text-[#8C7767] hover:text-[#B4532A] transition-colors"
-                    title="Hapus dari keranjang"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
             );

@@ -315,6 +315,123 @@ class AsmrAudioEngine {
     } catch {}
   }
 
+  // Gentle Sundanese Kacapi 2-note chime when item is added to cart or quantity updated
+  public playItemAddedChime() {
+    try {
+      const ctx = this.initContext();
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0.25, ctx.currentTime);
+      masterGain.connect(ctx.destination);
+
+      const notes = [587.33, 880.0]; // D5 -> A5
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const harm = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        harm.type = 'triangle';
+        harm.frequency.setValueAtTime(freq * 2, ctx.currentTime);
+
+        const startTime = ctx.currentTime + idx * 0.08;
+        gain.gain.setValueAtTime(0.0001, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.2, startTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.6);
+
+        osc.connect(gain);
+        harm.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(startTime);
+        harm.start(startTime);
+        osc.stop(startTime + 0.65);
+        harm.stop(startTime + 0.65);
+      });
+    } catch {}
+  }
+
+  // Celebratory Gamelan Degung & Gong fanfare when order is submitted/received
+  public playOrderPlacedSound() {
+    try {
+      const ctx = this.initContext();
+      const degungGain = ctx.createGain();
+      degungGain.gain.setValueAtTime(0.35, ctx.currentTime);
+      degungGain.connect(ctx.destination);
+
+      // Traditional Degung scale arpeggio: Da (440) - Mi (523) - Na (587) - Ti (659) - Da2 (880)
+      const degungNotes = [440.0, 523.25, 587.33, 659.25, 880.0];
+      degungNotes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const harm = ctx.createOscillator();
+        const noteGain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        harm.type = 'triangle';
+        harm.frequency.setValueAtTime(freq * 1.5, ctx.currentTime);
+
+        const startTime = ctx.currentTime + idx * 0.11;
+        noteGain.gain.setValueAtTime(0.0001, startTime);
+        noteGain.gain.exponentialRampToValueAtTime(0.3, startTime + 0.015);
+        noteGain.gain.exponentialRampToValueAtTime(0.0001, startTime + 1.2);
+
+        osc.connect(noteGain);
+        harm.connect(noteGain);
+        noteGain.connect(degungGain);
+
+        osc.start(startTime);
+        harm.start(startTime);
+        osc.stop(startTime + 1.25);
+        harm.stop(startTime + 1.25);
+      });
+
+      // Warm Bronze Gong Resonance at the conclusion
+      const gongStartTime = ctx.currentTime + 0.45;
+      const gongOsc = ctx.createOscillator();
+      const gongSub = ctx.createOscillator();
+      const gongGain = ctx.createGain();
+      const gongFilter = ctx.createBiquadFilter();
+
+      gongOsc.type = 'sine';
+      gongOsc.frequency.setValueAtTime(130.81, gongStartTime); // C3
+      gongSub.type = 'triangle';
+      gongSub.frequency.setValueAtTime(65.41, gongStartTime); // C2
+
+      gongFilter.type = 'lowpass';
+      gongFilter.frequency.setValueAtTime(350, gongStartTime);
+
+      gongGain.gain.setValueAtTime(0.0001, gongStartTime);
+      gongGain.gain.exponentialRampToValueAtTime(0.4, gongStartTime + 0.03);
+      gongGain.gain.exponentialRampToValueAtTime(0.0001, gongStartTime + 2.8);
+
+      gongOsc.connect(gongFilter);
+      gongSub.connect(gongFilter);
+      gongFilter.connect(gongGain);
+      gongGain.connect(degungGain);
+
+      gongOsc.start(gongStartTime);
+      gongSub.start(gongStartTime);
+      gongOsc.stop(gongStartTime + 2.85);
+      gongSub.stop(gongStartTime + 2.85);
+    } catch {}
+  }
+
+  // Continuous Ordering Ambience (Alunan Kacapi Suling & Suasana Priangan saat Memesan)
+  public startOrderingAmbience() {
+    this.play('kacapi');
+  }
+
+  public stopOrderingAmbience() {
+    if (this.currentPreset === 'kacapi') {
+      this.stop();
+    }
+  }
+
+  public isOrderingAmbienceActive(): boolean {
+    return this.isRunning() && this.currentPreset === 'kacapi';
+  }
+
   // Start a chosen preset
   public play(preset: AsmrPreset = 'all') {
     this.stop();

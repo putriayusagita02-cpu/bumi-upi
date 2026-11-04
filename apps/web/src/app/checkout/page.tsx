@@ -7,6 +7,7 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { QrCode, ArrowLeft, CheckCircle2, Clock, ShieldCheck, Users } from '../../components/icons';
 import { SplitBillModal } from '../../components/SplitBillModal';
+import { asmrAudioEngine } from '../../lib/asmrAudioEngine';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -107,6 +108,11 @@ export default function CheckoutPage() {
         setLoading(false);
         return;
       }
+
+      // Play celebratory traditional Degung & Gong fanfare for order placed
+      try {
+        asmrAudioEngine.playOrderPlacedSound();
+      } catch {}
 
       // Add points
       if (data.pointsEarned && data.pointsEarned > 0) {
