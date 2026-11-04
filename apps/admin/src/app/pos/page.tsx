@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Search,
   ShoppingCart,
@@ -18,7 +19,9 @@ import {
   User,
   Coffee,
   Sparkles,
-  Send
+  Send,
+  ChefHat,
+  Bell
 } from 'lucide-react';
 import { adminStore, OrderItem, OrderRecord } from '../../lib/adminStore';
 import { CATALOG_105_ITEMS, MENU_CATEGORIES, MenuItem } from '../../lib/catalogData';
@@ -60,6 +63,27 @@ export default function PosPage() {
   const [completedOrder, setCompletedOrder] = useState<OrderRecord | null>(null);
   const [showReceipt, setShowReceipt] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [liveKdsCount, setLiveKdsCount] = useState<number>(0);
+  const [latestWebOrder, setLatestWebOrder] = useState<OrderRecord | null>(null);
+
+  useEffect(() => {
+    const syncOrders = async () => {
+      await adminStore.syncLiveOrdersFromApi();
+      adminStore.loadFromStorage();
+      const active = adminStore.orders.filter(
+        (o) => o.status === 'confirmed' || o.status === 'preparing'
+      );
+      setLiveKdsCount(active.length);
+      const recentWeb = adminStore.orders.find(
+        (o) => o.cashierId === 'web-self-service' && (o.status === 'confirmed' || o.status === 'preparing')
+      );
+      setLatestWebOrder(recentWeb || null);
+    };
+
+    syncOrders();
+    const interval = setInterval(syncOrders, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Filter 105 Catalog items
   const filteredItems = useMemo(() => {
@@ -310,14 +334,53 @@ export default function PosPage() {
           )}
         </div>
 
-        {/* Cashier active indicator */}
-        <div className="text-xs text-kopi-muted flex items-center gap-2">
-          <span>Kasir Aktif:</span>
-          <span className="font-bold text-olive-900 bg-olive-50 px-2 py-1 rounded-md border border-olive-200">
-            {user?.name || 'Kang Asep'}
-          </span>
+        {/* Cashier active indicator & KDS shortcut */}
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+          <Link
+            href="/kitchen"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-xs text-amber-900 font-semibold transition shadow-2xs"
+            title="Buka Kitchen Display System"
+          >
+            <ChefHat className="w-4 h-4 text-amber-700" />
+            <span>Antrean Dapur:</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white font-mono text-[10px] font-bold animate-pulse">
+              {liveKdsCount} Tiket
+            </span>
+          </Link>
+          <div className="text-xs text-kopi-muted flex items-center gap-2">
+            <span>Kasir:</span>
+            <span className="font-bold text-olive-900 bg-olive-50 px-2 py-1 rounded-md border border-olive-200">
+              {user?.name || 'Kang Asep'}
+            </span>
+          </div>
         </div>
       </div>
+
+      {/* Live Web Order Alert Banner if any new web order is waiting */}
+      {latestWebOrder && (
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xs animate-fade-in">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500 text-white font-bold text-sm shadow-xs animate-bounce">
+              🔔
+            </span>
+            <div>
+              <p className="text-xs font-bold text-amber-900">
+                Pesanan Baru Masuk dari Pelanggan ({latestWebOrder.tableNumber})!
+              </p>
+              <p className="text-[11px] text-amber-800">
+                Tiket <strong className="font-mono">{latestWebOrder.orderNumber}</strong> • {latestWebOrder.items.length} Menu • Total Rp {latestWebOrder.finalAmount.toLocaleString('id-ID')}
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/kitchen"
+            className="px-3.5 py-1.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5"
+          >
+            <span>Buka Dapur KDS</span>
+            <span>→</span>
+          </Link>
+        </div>
+      )}
 
       {/* Main 2-Column POS Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">

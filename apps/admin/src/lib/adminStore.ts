@@ -287,7 +287,15 @@ export class AdminStore {
           voucherCode: inc.voucherCode || undefined,
           paymentMethod: inc.paymentMethod || 'qris',
           paymentStatus: inc.paymentStatus || 'paid',
-          items: inc.items || [],
+          items: (inc.items || []).map((it: any) => ({
+            productId: it.productId || it.id || 1,
+            itemName: it.itemName || it.name || 'Menu Bumi Upi',
+            variantName: it.variantName || (it.size || it.temp ? `${it.size || ''} ${it.temp || ''}`.trim() : undefined),
+            unitPrice: it.unitPrice || it.price || 0,
+            quantity: it.quantity || 1,
+            subtotal: it.subtotal || ((it.unitPrice || it.price || 0) * (it.quantity || 1)),
+            notes: it.notes || undefined,
+          })),
           notes: inc.notes || 'Pemesanan via Web Mandiri',
           createdAt: inc.createdAt || new Date().toISOString(),
           createdAtWib: inc.createdAtWib || new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB'

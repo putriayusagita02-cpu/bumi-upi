@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../lib/authContext';
 import { ShieldCheck, UserCheck, ChefHat, Send, Clock, LogOut, ExternalLink, Menu } from 'lucide-react';
+import { adminStore } from '../lib/adminStore';
 
 export interface AdminNavbarProps {
   onToggleMobileMenu?: () => void;
@@ -12,6 +13,7 @@ export interface AdminNavbarProps {
 export function AdminNavbar({ onToggleMobileMenu }: AdminNavbarProps = {}) {
   const { user, quickSwitch, logout } = useAuth();
   const [timeWib, setTimeWib] = useState<string>('');
+  const [kdsCount, setKdsCount] = useState<number>(0);
 
   useEffect(() => {
     const updateTime = () => {
@@ -28,6 +30,20 @@ export function AdminNavbar({ onToggleMobileMenu }: AdminNavbarProps = {}) {
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const updateKds = async () => {
+      await adminStore.syncLiveOrdersFromApi();
+      adminStore.loadFromStorage();
+      const active = adminStore.orders.filter(
+        (o) => o.status === 'confirmed' || o.status === 'preparing'
+      );
+      setKdsCount(active.length);
+    };
+    updateKds();
+    const kdsInterval = setInterval(updateKds, 3000);
+    return () => clearInterval(kdsInterval);
   }, []);
 
   return (
@@ -73,7 +89,20 @@ export function AdminNavbar({ onToggleMobileMenu }: AdminNavbarProps = {}) {
         </div>
 
         {/* Right: Operational Staff Role & Shortcut */}
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          {/* Antrean Dapur Live KDS Shortcut with Live Counter */}
+          <Link
+            href="/kitchen"
+            className="flex items-center gap-1.5 py-1 px-2.5 sm:px-3 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-xs font-bold text-amber-900 transition-colors shadow-2xs"
+            title="Lihat antrean pesanan di Dapur Live KDS"
+          >
+            <ChefHat className="w-3.5 h-3.5 text-amber-700" />
+            <span className="hidden sm:inline">Dapur:</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-red-600 text-white font-mono text-[10px] animate-pulse">
+              {kdsCount}
+            </span>
+          </Link>
+
           {/* Tautan Cepat ke Portal Pelanggan */}
           <a
             href="http://localhost:3000"
@@ -82,7 +111,7 @@ export function AdminNavbar({ onToggleMobileMenu }: AdminNavbarProps = {}) {
             className="hidden md:flex items-center gap-1.5 py-1 px-3 rounded-xl border border-krem-border bg-krem-surface hover:bg-[#EFE7D5] text-xs font-semibold text-kopi transition-colors"
             title="Buka portal pemesanan mandiri & kartu pelanggan di tab baru"
           >
-            <span>Buka Portal Pelanggan (Port 3000)</span>
+            <span>Portal Pelanggan</span>
             <ExternalLink className="w-3.5 h-3.5 text-terakota" />
           </a>
 

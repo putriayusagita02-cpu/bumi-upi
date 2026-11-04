@@ -43,6 +43,21 @@ export function queryUpiLocalKnowledge(prompt: string, userContext?: any): strin
     return `Rumah Tamah Bumi Upi beralamat di kawasan sejuk **Garut, Jawa Barat** (akses mudah ke arah Samarang). Suasana restoran berkonsep rumah nenek dengan teras krepyak dan halaman rumput yang asri. Petunjuk arah lengkap bisa dilihat di bagian bawah landing page ya!`;
   }
 
+  // 3.5 Menu Khusus Ramah Anak & Si Kecil (Prioritas sebelum rekomendasi umum)
+  if (
+    q.includes('anak') ||
+    q.includes('bocil') ||
+    q.includes('si kecil') ||
+    q.includes('balita') ||
+    q.includes('bayi') ||
+    q.includes('kid') ||
+    q.includes('kids') ||
+    q.includes('sekolah') ||
+    (q.includes('tidak pedas') && (q.includes('menu') || q.includes('makanan') || q.includes('makan') || q.includes('pilihan')))
+  ) {
+    return `Sampurasun! Untuk si kecil dan keluarga tercinta, Rumah Tamah Bumi Upi memiliki pilihan menu otentik yang **100% NON-PEDAS, tanpa MSG, higienis, dan sangat disukai anak-anak**:\n\n🍱 **Makanan Utama Favorit Si Kecil:**\n• **Tuangeun Bocil** (Rp 25.000) — Paket komplit ramah anak: nugget ayam mini gurih, sosis goreng, sop bening hangat, dan kentang goreng atau nasi pulen (+Rp 7.000 bisa dapat Es Cokelat).\n• **Mie Anak Sekolah** (Rp 20.000) — Mie goreng lezat bukan mie instan, diolah khusus tanpa MSG dan bebas pedas, aman & bergizi untuk anak.\n• **Dimsum Ekonomis** (Rp 15.000 / 5 pcs) & **Dimsum Sejahtera** (Rp 17.000 / 3 pcs) — Dimsum kukus ayam & udang yang lembut, gurih, dan mudah dikunyah.\n\n🥞 **Camilan Manis & Roti Panggang:**\n• **Pisang Goreng SNI** (Rp 20.000) — Pisang kepok goreng renyah bertabur gula palem alami.\n• **Pisang Bakar Cokelat Keju** (Rp 23.000) & **Pisang Bakar Double Cokelat** (Rp 23.000) — Pisang bakar manis harum lumuran keju parut dan meses cokelat.\n• **Roti Bakar Cokelat** (Rp 20.000) & **Roti Bakar Keju** (Rp 20.000) — Roti empuk tebal resep tempo doeloe.\n• **Ulen Upi** (Rp 22.000) — Ketan bakar gurih kelapa warisan nenek yang legit & lembut.\n\n🥤 **Minuman Segar & Sehat Favorit Anak:**\n• **Es Cokelat Malt Dinosaurus** (Rp 20.000) / **Cokelat Malt Panas** (Rp 20.000) — Cokelat malt kental legit bertabur bubuk melimpah, favorit nomor satu anak-anak!\n• **Jus Stroberi Segar** (Rp 18.000) & **Jus Alpukat Mentega** (Rp 20.000) — Jus buah asli segar manis kaya vitamin C.\n• **Susu Murni Hangat / Dingin** (Rp 15.000) & **Susu Cokelat** (Rp 17.000) — Susu segar murni bergizi.\n\nSemua menu di atas dijamin non-pedas dan aman untuk si kecil. Silakan pilih di katalog menu ya! 🌿`;
+  }
+
   // 4. Menu & Makanan Spesifik
   if (q.includes('menu') || q.includes('makanan') || q.includes('minuman') || q.includes('masakan') || q.includes('kuliner') || q.includes('rekomendasi') || q.includes('enak')) {
     return `Menu andalan khas rumah nenek kami yang paling banyak dirindukan:\n\n🍛 **Makanan Utama:**\n• **Nasi Goreng Kecombrang** (Rp 26.000) — Harum rempah bunga kecombrang asli\n• **Gulai Sapi Rempah Pasundan** (Rp 34.000) — Kuah santan rempah hangat\n• **Nasi Ayam Kalasan Kremes** (Rp 28.000)\n• **Nasi Liwet Kastrol Komplit** (Rp 48.000, porsi 2 orang)\n\n☕ **Minuman & Cemilan:**\n• **Es Cokelat Bumi Klasik + Roti Sobek** (Rp 22.000)\n• **Es Kunyit Asam Segar** (Rp 18.000)\n• **Tempe Mendoan Panas** (Rp 16.000)\n\nMau pesan atau tahu komposisi menu tertentu? Tanyakan saja!`;

@@ -35,6 +35,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const createdOrder = result.order || orderEngine.getOrder(result.orderId);
+
+    // 1. Simpan ke data layer bersama (@bumi-upi/db)
+    if (createdOrder) {
+      try {
+        const dbPkg = await import('@bumi-upi/db' as any);
+        if (dbPkg && typeof dbPkg.saveSharedOrder === 'function') {
+          dbPkg.saveSharedOrder(createdOrder);
+        }
+      } catch {}
+
+      // 2. Notifikasi langsung ke Admin POS / Dapur KDS jika server admin sedang aktif
+      try {
+        const adminUrl = process.env.ADMIN_URL || 'http://127.0.0.1:3001';
+        fetch(`${adminUrl}/api/pos/transaction`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(createdOrder),
+        }).catch(() => {});
+      } catch {}
+    }
+
     return NextResponse.json({
       success: true,
       ...result,

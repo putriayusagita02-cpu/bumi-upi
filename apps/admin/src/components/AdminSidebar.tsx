@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -13,6 +13,7 @@ import {
   Bot
 } from 'lucide-react';
 import { useAuth, UserRole } from '../lib/authContext';
+import { adminStore } from '../lib/adminStore';
 
 interface NavItem {
   name: string;
@@ -63,6 +64,19 @@ const NAV_ITEMS: NavItem[] = [
 function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const [kdsCount, setKdsCount] = useState<number>(0);
+
+  useEffect(() => {
+    const update = () => {
+      const active = adminStore.orders.filter(
+        (o) => o.status === 'confirmed' || o.status === 'preparing'
+      );
+      setKdsCount(active.length);
+    };
+    update();
+    const interval = setInterval(update, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="flex flex-col justify-between h-full overflow-y-auto">
@@ -101,6 +115,10 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
             const Icon = item.icon;
             const isRestricted = item.roles && user && !item.roles.includes(user.role);
 
+            const badgeText = item.href === '/kitchen' && kdsCount > 0
+              ? `${kdsCount} Tiket`
+              : item.badge;
+
             return (
               <Link
                 key={item.href}
@@ -118,15 +136,17 @@ function SidebarInner({ onItemClick }: { onItemClick?: () => void }) {
                   <Icon className={`w-4 h-4 ${isActive ? 'text-terakota' : 'text-mustard-light'}`} />
                   <span>{item.name}</span>
                 </div>
-                {item.badge && (
+                {badgeText && (
                   <span
                     className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                      isActive
+                      item.href === '/kitchen' && kdsCount > 0
+                        ? 'bg-red-600 text-white animate-pulse'
+                        : isActive
                         ? 'bg-olive text-krem'
                         : 'bg-olive-800 text-krem/70 border border-olive-600'
                     }`}
                   >
-                    {item.badge}
+                    {badgeText}
                   </span>
                 )}
               </Link>

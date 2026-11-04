@@ -103,6 +103,15 @@ class LocalOrderEngine {
         ord.status = status;
         this.orders.set(ord.id, ord);
         this.orders.set(ord.idempotencyKey, ord);
+
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const dbPkg = require('@bumi-upi/db');
+          if (dbPkg && typeof dbPkg.updateSharedOrderStatus === 'function') {
+            dbPkg.updateSharedOrderStatus(ord.id, status);
+          }
+        } catch {}
+
         return { ...ord };
       }
     }
@@ -364,6 +373,15 @@ class LocalOrderEngine {
 
     this.orders.set(idempotencyKey, orderRecord);
     this.orders.set(orderId, orderRecord);
+
+    // Sinkronisasi otomatis ke data layer bersama agar langsung masuk ke Dashboard & KDS Admin
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const dbPkg = require('@bumi-upi/db');
+      if (dbPkg && typeof dbPkg.saveSharedOrder === 'function') {
+        dbPkg.saveSharedOrder(orderRecord);
+      }
+    } catch {}
 
     return {
       success: true,
