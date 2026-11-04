@@ -136,6 +136,24 @@ export default function CheckoutPage() {
         } catch (e) {
           console.warn('Failed to save order to localStorage', e);
         }
+
+        // Sinkronisasi langsung dari browser ke server Admin KDS/POS (baik lokal maupun di Vercel)
+        try {
+          const adminCandidates = [
+            process.env.NEXT_PUBLIC_ADMIN_URL,
+            'https://bumi-upi-admin.vercel.app',
+            'http://127.0.0.1:3001'
+          ].filter(Boolean) as string[];
+
+          for (const adminEndpoint of adminCandidates) {
+            fetch(`${adminEndpoint}/api/pos/transaction`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(orderRecord),
+              mode: 'cors'
+            }).catch(() => {});
+          }
+        } catch {}
       }
 
       // Clear cart

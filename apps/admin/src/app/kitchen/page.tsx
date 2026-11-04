@@ -68,6 +68,14 @@ export default function KitchenPage() {
     const chefId = user?.id || 'usr-chef-01';
     adminStore.updateOrderStatus(orderId, nextStatus, chefId, chefName);
     refreshOrders();
+
+    try {
+      fetch('/api/pos/transaction', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status: nextStatus })
+      }).catch(() => {});
+    } catch {}
   };
 
   const filteredOrders = orders.filter((o) => {

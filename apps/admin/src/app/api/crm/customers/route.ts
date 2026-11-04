@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminStore } from '@/lib/adminStore';
 import { INITIAL_CUSTOMERS, CustomerProfile } from '@/lib/crmData';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function GET() {
   const mergedMap = new Map<string, CustomerProfile>();
 
@@ -17,7 +27,41 @@ export async function GET() {
     if (c.phone) mergedMap.set(c.phone, c);
   }
 
-  // 3. Ambil member baru yang terdaftar dari @bumi-upi/db shared live store
+  // 3. Ambil data pelanggan dari Supabase Database jika credentials aktif
+  try {
+    const dbPkg = await import('@bumi-upi/db' as any);
+    if (dbPkg && dbPkg.supabaseService && typeof dbPkg.isMockMode === 'function' && !dbPkg.isMockMode()) {
+      const sbCust = await dbPkg.supabaseService.getCustomers();
+      if (Array.isArray(sbCust) && sbCust.length > 0) {
+        for (const sc of sbCust) {
+          const profile: CustomerProfile = {
+            id: sc.id || `cust-${Date.now()}`,
+            name: sc.name || 'Member Supabase',
+            email: sc.email || '',
+            phone: sc.phone || '',
+            tier: (sc.tier || 'Tamu') as any,
+            pointsBalance: sc.points_balance !== undefined ? sc.points_balance : 50,
+            cumulativePoints: sc.cumulative_points !== undefined ? sc.cumulative_points : 50,
+            qrCode: sc.qr_code || `BUMI-CUST-${sc.phone ? sc.phone.slice(-4) : '9999'}`,
+            recencyDays: 0,
+            frequencyCount: 1,
+            monetaryTotal: 0,
+            rScore: 3,
+            fScore: 3,
+            mScore: 3,
+            rfmScore: '333',
+            segment: 'Potensial',
+            clvEstimate: 150000,
+            lastVisitWib: 'Baru Saja'
+          };
+          mergedMap.set(profile.id, profile);
+          if (profile.phone) mergedMap.set(profile.phone, profile);
+        }
+      }
+    }
+  } catch {}
+
+  // 4. Ambil member baru yang terdaftar dari @bumi-upi/db shared live store
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const dbPkg = await import('@bumi-upi/db' as any);
@@ -52,18 +96,21 @@ export async function GET() {
 
   const list = Array.from(new Set(mergedMap.values()));
 
-  return NextResponse.json({
-    success: true,
-    customers: list,
-    count: list.length
-  });
+  return NextResponse.json(
+    {
+      success: true,
+      customers: list,
+      count: list.length
+    },
+    { headers: corsHeaders }
+  );
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     if (!body || (!body.phone && !body.email && !body.name)) {
-      return NextResponse.json({ success: false, error: 'Data pelanggan tidak lengkap' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Data pelanggan tidak lengkap' }, { status: 400, headers: corsHeaders });
     }
 
     const profile: CustomerProfile = {
@@ -103,12 +150,15 @@ export async function POST(req: NextRequest) {
       adminStore.saveToStorage();
     }
 
-    return NextResponse.json({
-      success: true,
-      customer: profile,
-      message: 'Member baru berhasil dicatat di CRM Staf'
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        customer: profile,
+        message: 'Member baru berhasil dicatat di CRM Staf'
+      },
+      { headers: corsHeaders }
+    );
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: err.message }, { status: 500, headers: corsHeaders });
   }
 }

@@ -54,7 +54,24 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString()
     };
 
-    // 1. Simpan ke data layer bersama (@bumi-upi/db)
+    // 1. Simpan ke Supabase Database jika credentials aktif
+    try {
+      const dbPkg = await import('@bumi-upi/db' as any);
+      if (dbPkg && dbPkg.supabaseService && typeof dbPkg.isMockMode === 'function' && !dbPkg.isMockMode()) {
+        await dbPkg.supabaseService.createOrderAtomic({
+          idempotencyKey: key,
+          customerId,
+          orderType,
+          tableNumber,
+          items,
+          customerVoucherId,
+          paymentMethod: paymentMethod || 'qris',
+          notes,
+        });
+      }
+    } catch {}
+
+    // 2. Simpan ke data layer bersama (@bumi-upi/db)
     try {
       const dbPkg = await import('@bumi-upi/db' as any);
       if (dbPkg && typeof dbPkg.saveSharedOrder === 'function') {
@@ -62,15 +79,23 @@ export async function POST(req: NextRequest) {
       }
     } catch {}
 
-    // 2. Notifikasi langsung ke Admin POS / Dapur KDS jika server admin sedang aktif
-    try {
-      const adminUrl = process.env.ADMIN_URL || 'http://127.0.0.1:3001';
-      fetch(`${adminUrl}/api/pos/transaction`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(createdOrder),
-      }).catch(() => {});
-    } catch {}
+    // 3. Notifikasi langsung ke Admin POS / Dapur KDS (prioritaskan URL Vercel Live jika ada)
+    const candidateAdminUrls = [
+      process.env.ADMIN_URL,
+      process.env.NEXT_PUBLIC_ADMIN_URL,
+      'https://bumi-upi-admin.vercel.app',
+      'http://127.0.0.1:3001'
+    ].filter(Boolean) as string[];
+
+    for (const aUrl of candidateAdminUrls) {
+      try {
+        fetch(`${aUrl}/api/pos/transaction`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(createdOrder),
+        }).catch(() => {});
+      } catch {}
+    }
 
     return NextResponse.json({
       success: true,

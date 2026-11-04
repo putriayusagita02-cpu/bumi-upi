@@ -465,6 +465,88 @@ class SupabaseService {
       return [];
     }
   }
+
+  /**
+   * 6. ORDERS & REALTIME KDS OPERATIONS
+   */
+  async getOrders(): Promise<any[]> {
+    const client = getSupabaseClient();
+    if (!client || isMockMode()) {
+      return [];
+    }
+
+    try {
+      const { data, error } = await client
+        .from('orders')
+        .select(`
+          *,
+          order_items (*)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error || !data) return [];
+
+      return data.map((o: any) => ({
+        id: o.id,
+        orderNumber: o.order_number,
+        idempotencyKey: o.idempotency_key,
+        customerId: o.customer_id,
+        cashierId: o.cashier_id,
+        orderType: o.order_type,
+        tableNumber: o.table_number,
+        status: o.status,
+        subtotal: o.subtotal,
+        discountAmount: o.discount_amount,
+        finalAmount: o.final_amount,
+        pointsEarned: o.points_earned,
+        voucherId: o.voucher_id,
+        paymentMethod: o.payment_method,
+        paymentStatus: o.payment_status,
+        notes: o.notes,
+        createdAt: o.created_at,
+        items: (o.order_items || []).map((it: any) => ({
+          productId: it.menu_item_id,
+          itemName: it.item_name,
+          unitPrice: it.unit_price,
+          quantity: it.quantity,
+          subtotal: it.subtotal,
+          notes: it.notes,
+        })),
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  async updateOrderStatus(orderId: string, status: string): Promise<boolean> {
+    const client = getSupabaseClient();
+    if (!client || isMockMode()) return false;
+    try {
+      const isUUID = orderId.includes('-');
+      const query = client.from('orders').update({ status, updated_at: new Date().toISOString() });
+      const { error } = isUUID
+        ? await query.eq('id', orderId)
+        : await query.eq('order_number', orderId);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+
+  async getCustomers(): Promise<Profile[]> {
+    const client = getSupabaseClient();
+    if (!client || isMockMode()) return [];
+    try {
+      const { data, error } = await client
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error || !data) return [];
+      return data;
+    } catch {
+      return [];
+    }
+  }
 }
 
 export const supabaseService = new SupabaseService();

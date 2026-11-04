@@ -144,7 +144,27 @@ export async function POST(req: NextRequest) {
         createdAt: new Date().toISOString()
       };
 
-      // 1. Simpan ke data layer bersama agar langsung terdeteksi di CRM Admin
+      // 1. Simpan ke Supabase Database jika credentials aktif
+      try {
+        const dbPkg = await import('@bumi-upi/db' as any);
+        if (dbPkg && dbPkg.getSupabaseClient && typeof dbPkg.isMockMode === 'function' && !dbPkg.isMockMode()) {
+          const client = dbPkg.getSupabaseClient();
+          if (client) {
+            await client.from('profiles').upsert({
+              name: customerProfile.name,
+              phone: cleanPhone,
+              role: 'customer',
+              tier: customerProfile.tier || 'Tamu',
+              points_balance: customerProfile.pointsBalance || 50,
+              cumulative_points: customerProfile.cumulativePoints || 50,
+              qr_code: customerProfile.qrValue,
+              opt_in_promo: true
+            }, { onConflict: 'phone' });
+          }
+        }
+      } catch {}
+
+      // 2. Simpan ke data layer bersama agar langsung terdeteksi di CRM Admin
       try {
         const dbPkg = await import('@bumi-upi/db' as any);
         if (dbPkg && typeof dbPkg.saveSharedCustomer === 'function') {
@@ -152,15 +172,23 @@ export async function POST(req: NextRequest) {
         }
       } catch {}
 
-      // 2. Kirim notifikasi instan ke server Admin CRM jika aktif
-      try {
-        const adminUrl = process.env.ADMIN_URL || 'http://127.0.0.1:3001';
-        fetch(`${adminUrl}/api/crm/customers`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(customerProfile),
-        }).catch(() => {});
-      } catch {}
+      // 3. Kirim notifikasi instan ke server Admin CRM (prioritaskan URL Vercel Live jika ada)
+      const candidateAdminUrls = [
+        process.env.ADMIN_URL,
+        process.env.NEXT_PUBLIC_ADMIN_URL,
+        'https://bumi-upi-admin.vercel.app',
+        'http://127.0.0.1:3001'
+      ].filter(Boolean) as string[];
+
+      for (const aUrl of candidateAdminUrls) {
+        try {
+          fetch(`${aUrl}/api/crm/customers`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(customerProfile),
+          }).catch(() => {});
+        } catch {}
+      }
 
       return NextResponse.json({
         success: true,
