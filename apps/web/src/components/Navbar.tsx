@@ -14,16 +14,18 @@ export const Navbar: React.FC = () => {
   const { customer, isLoggedIn } = useAuth();
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
 
-  // Link navigasi: Jika belum login, HANYA Beranda (tidak ada Menu atau fitur lain di header)
+  // Link navigasi:
   const navLinks = isLoggedIn
     ? [
         { href: '/', label: 'Beranda' },
         { href: '/menu', label: 'Menu' },
+        { href: '/wedding', label: 'Pernikahan & Event' },
         { href: '/member', label: 'Kartu Member' },
         { href: '/cart', label: 'Keranjang' },
       ]
     : [
         { href: '/', label: 'Beranda' },
+        { href: '/wedding', label: 'Pernikahan & Event' },
       ];
 
   return (

@@ -22,60 +22,60 @@ interface DiningZone {
 
 const ZONES: DiningZone[] = [
   {
-    id: 'zone-saung',
-    name: 'Saung Lesehan Bambu',
-    slogan: 'Gemericik Kolam Koi & Semilir Angin Kebun',
-    icon: '🎋',
-    vibe: 'Tenang, asri, beralaskan tikar pandan dan bantal santai.',
-    capacity: '4 – 8 Orang / Saung',
-    tables: ['Meja 01', 'Meja 02', 'Meja 03', 'Meja 04'],
-    features: ['Kolam Ikan Koi', 'Tikar Pandan', 'Bantal Empuk', 'Cocok Botram Daun Pisang'],
-  },
-  {
     id: 'zone-teras',
-    name: 'Teras Krepyak Vintage',
-    slogan: 'Nuansa Jendela Kayu Jati Era Kolonial 1930',
+    name: 'Teras Rumah Nenek (Vintage 1930)',
+    slogan: 'Spot Pintu Viral & Kusen Krepyak Hijau Kolonial',
     icon: '🪑',
-    vibe: 'Pencahayaan temaram hangat, angin semilir, dan kursi antik.',
+    vibe: 'Nuansa teras rumah tempo doeloe, lantai bata merah herringbone, kursi lipat antik, dan angin semilir Garut.',
     capacity: '2 – 4 Orang / Meja',
-    tables: ['Meja 05', 'Meja 06', 'Meja 07', 'Meja 08'],
-    features: ['Kursi Jati Kuno', 'Lampu Petromak Hangat', 'Spot Foto Estetik', 'Ngopi Santai'],
+    tables: ['Meja 01', 'Meja 02', 'Meja 03', 'Meja 04'],
+    features: ['Pintu Kayu Viral', 'Kursi Sedan Jati', 'Spot Foto OOTD Estetik', 'Angin Semilir Sore'],
   },
   {
-    id: 'zone-bale',
-    name: 'Bale Utama Nobar & Botram',
-    slogan: 'Layar Proyektor Nobar Persib & Alunan Kecapi Suling',
-    icon: '📺',
-    vibe: 'Ruang lapang di tengah rumah, dekat panggung kecapi dan layar.',
-    capacity: '4 – 6 Orang / Meja',
-    tables: ['Meja 09', 'Meja 10', 'Meja 11', 'Meja 12'],
-    features: ['Layar Nobar Bobotoh', 'Dekat Musola', 'Meja Kayu Panjang', 'Suasana Ramai Hangat'],
-  },
-  {
-    id: 'zone-dapur',
-    name: 'Pojok Perapian Dapur Arang',
-    slogan: 'Aroma Sedap Asap Kayu Bakar & Gorengan Ulen Hangat',
-    icon: '🔥',
-    vibe: 'Hangat di dekat tungku tanah liat, melihat langsung proses masak.',
-    capacity: '2 – 4 Orang / Meja',
-    tables: ['Meja 13', 'Meja 14', 'Meja 15', 'Meja 16'],
-    features: ['Dekat Tungku Arang', 'Gorengan Dadakan', 'Hangat Malam Hari', 'Seduhan Kopi Tubruk'],
-  },
-  {
-    id: 'zone-paviliun',
-    name: 'Paviliun Belakang Kebun Kopi',
-    slogan: 'Rindang Pepohonan Kopi Garut & Semak Bunga Kemangi',
-    icon: '🌿',
-    vibe: 'Semi-outdoor sejuk dengan hembusan angin sejuk kaki gunung.',
+    id: 'zone-indoor',
+    name: 'Ruang Tengah Rumah Nenek (Indoor AC)',
+    slogan: 'Suasana Hangat Keluarga, Radio Antik & Sofa Vintage',
+    icon: '📻',
+    vibe: 'Interior klasik tempo doeloe, sejuk berpendingin ruangan, sangat homey serasa berkunjung ke rumah kakek-nenek.',
     capacity: '2 – 6 Orang / Meja',
+    tables: ['Meja 05', 'Meja 06', 'Meja 07', 'Meja 08'],
+    features: ['Ruangan Full AC', 'Pajangan Radio Jadul', 'Sofa & Lemari Antik', 'Nyaman & Privat'],
+  },
+  {
+    id: 'zone-photobooth',
+    name: 'Pojok Photobox & Sudut Nostalgia',
+    slogan: 'Cetak Strip Foto Instan & Abadikan Momen Bahagia',
+    icon: '📸',
+    vibe: 'Area paling hits tepat di dekat bilik photobox vintage Bumi Upi, meja favorit anak muda dan kencan santai.',
+    capacity: '2 – 4 Orang / Meja',
+    tables: ['Meja 09', 'Meja 10', 'Meja 11', 'Meja 12'],
+    features: ['Akses Photobox Rp 25k', 'Properti Foto Retro', 'Dekat Bar Seduhan Kopi', 'Vibes Kekinian'],
+  },
+  {
+    id: 'zone-taman',
+    name: 'Taman Belakang & Playground (Outdoor Asri)',
+    slogan: 'Rumput Hijau Asri, Pepohonan Rindang & Playground Ramah Anak',
+    icon: '🌿',
+    vibe: 'Halaman terbuka hijau yang sejuk dan luas, ramah anak-anak untuk bermain santai di playground.',
+    capacity: '4 – 8 Orang / Meja',
+    tables: ['Meja 13', 'Meja 14', 'Meja 15', 'Meja 16'],
+    features: ['Playground Ramah Anak', 'Rumput Alami Sejuk', 'Meja Payung Luar', 'Pencahayaan Alami Estetik'],
+  },
+  {
+    id: 'zone-baleriung',
+    name: 'Bale Riung Utama (Pendopo Semi-Outdoor)',
+    slogan: 'Meja Panjang Botram Keluarga Besar, Nobar & Intimate Event',
+    icon: '🏮',
+    vibe: 'Pendopo kayu lapang beratap genteng klasik, cocok untuk jamuan makan rombongan besar dan perayaan syukuran.',
+    capacity: '6 – 12 Orang / Meja',
     tables: ['Meja 17', 'Meja 18', 'Meja 19', 'Meja 20'],
-    features: ['Semi-Outdoor', 'Bebas Rokok Luar', 'Pemandangan Hijau', 'Meja Payung'],
+    features: ['Meja Panjang Kayu Solid', 'Layar Nobar Proyektor', 'Kapasitas Rombongan', 'Venue Intimate Wedding'],
   },
 ];
 
 export const TableSelectorModal: React.FC<TableSelectorModalProps> = ({ isOpen, onClose }) => {
   const { tableNumber, setTableNumber, orderType, setOrderType } = useCart();
-  const [selectedZoneId, setSelectedZoneId] = useState<string>('zone-saung');
+  const [selectedZoneId, setSelectedZoneId] = useState<string>('zone-teras');
   const [viewMode, setViewMode] = useState<'visual' | 'quick'>('visual');
 
   if (!isOpen) return null;

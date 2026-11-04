@@ -255,6 +255,34 @@ function MemberDashboard({ customer }: { customer: any }) {
         </Link>
       </section>
 
+      {/* BANNER KHUSUS: PHOTOBOX VINTAGE & RENCANA PERNIKAHAN INTIMATE DI BUMI UPI */}
+      <section className="bg-gradient-to-r from-[#2B3A21] via-[#3E4F30] to-[#1F2B17] text-[#F5EEDC] p-6 sm:p-8 rounded-[2rem] border-2 border-[#D4A24C]/60 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#D4A24C]/20 border border-[#D4A24C]/40 text-[#D4A24C] text-[11px] font-bold uppercase tracking-wider">
+            <span>💍</span>
+            <span>Intimate Wedding & Photobox Bumi Upi</span>
+          </div>
+          <h2
+            className="font-serif text-xl sm:text-2xl font-bold leading-snug"
+            style={{ fontFamily: 'var(--font-fraunces, "Fraunces", Georgia, serif)' }}
+          >
+            Pernikahan Impian & Spot Photobox Estetik di Rumah Nenek
+          </h2>
+          <p className="text-xs text-[#E0D4BA] leading-relaxed">
+            Abadikan momen sakral dan kencan hangat di Jl. Cimanuk 312 Garut. Nikmati paket intimate wedding mulai Rp 14,5 Juta, prasmanan Dapur Nenek, serta fasilitas Photobox Vintage cetak instan!
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full md:w-auto">
+          <Link
+            href="/wedding"
+            className="w-full sm:w-auto py-3 px-5 rounded-xl bg-[#D4A24C] hover:bg-[#c2913e] text-[#2B2625] font-bold text-xs shadow-md transition text-center flex items-center justify-center gap-2 active:scale-95"
+          >
+            <span>Lihat Paket & Pricelist Wedding →</span>
+          </Link>
+        </div>
+      </section>
+
       {/* 4. POJOK HOKI & TRAKTIRAN HARIAN MEMBER */}
       <section>
         <DailySpin />

@@ -138,11 +138,13 @@ export const UpiChatDrawer: React.FC = () => {
   };
 
   const quickQuestions = [
-    { label: 'Rekomendasi Menu Juara', icon: '🍛', prompt: 'Rekomendasi menu apa yang paling enak dan wajib dicoba?' },
     { label: 'Menu Pedas Garut', icon: '🌶️', prompt: 'Ada menu apa yang pedas nampol khas Garut?' },
+    { label: 'Pernikahan & Pricelist', icon: '💍', prompt: 'Bisa minta pricelist paket pernikahan dan event di Bumi Upi?' },
+    { label: 'Photobox Bumi Upi', icon: '📸', prompt: 'Bumi Upi ada photobooth / photobox? Berapa harganya?' },
+    { label: 'Pilihan Area Tempat', icon: '🏡', prompt: 'Ada area dan tempat apa saja di Bumi Upi Garut?' },
+    { label: 'Rekomendasi Menu Juara', icon: '🍛', prompt: 'Rekomendasi menu apa yang paling enak dan wajib dicoba?' },
     { label: 'Menu Ramah Bocil', icon: '👶', prompt: 'Menu apa yang cocok buat anak-anak tanpa pedas?' },
     { label: 'Promo Voucher Hari Ini', icon: '🎟️', prompt: 'Ada promo voucher apa hari ini?' },
-    { label: 'Jam Buka & Lokasi', icon: '📍', prompt: 'Berapa jam buka dan dimana lokasi Bumi Upi?' },
   ];
 
   return (
