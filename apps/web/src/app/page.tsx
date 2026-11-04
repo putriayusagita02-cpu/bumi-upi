@@ -273,12 +273,18 @@ function MemberDashboard({ customer }: { customer: any }) {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-2.5 shrink-0 w-full md:w-auto">
+          <Link
+            href="/photobooth"
+            className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs border border-white/30 transition text-center flex items-center justify-center gap-1.5 active:scale-95"
+          >
+            <span>📸 Coba Photobox Sekarang</span>
+          </Link>
           <Link
             href="/wedding"
-            className="w-full sm:w-auto py-3 px-5 rounded-xl bg-[#D4A24C] hover:bg-[#c2913e] text-[#2B2625] font-bold text-xs shadow-md transition text-center flex items-center justify-center gap-2 active:scale-95"
+            className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-[#D4A24C] hover:bg-[#c2913e] text-[#2B2625] font-bold text-xs shadow-md transition text-center flex items-center justify-center gap-1.5 active:scale-95"
           >
-            <span>Lihat Paket & Pricelist Wedding →</span>
+            <span>Pricelist Wedding & Event →</span>
           </Link>
         </div>
       </section>

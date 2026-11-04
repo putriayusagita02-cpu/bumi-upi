@@ -19,12 +19,14 @@ export const Navbar: React.FC = () => {
     ? [
         { href: '/', label: 'Beranda' },
         { href: '/menu', label: 'Menu' },
+        { href: '/photobooth', label: '📸 Photobox' },
         { href: '/wedding', label: 'Pernikahan & Event' },
         { href: '/member', label: 'Kartu Member' },
         { href: '/cart', label: 'Keranjang' },
       ]
     : [
         { href: '/', label: 'Beranda' },
+        { href: '/photobooth', label: '📸 Photobox' },
         { href: '/wedding', label: 'Pernikahan & Event' },
       ];
 

@@ -136,7 +136,7 @@ export default function WeddingPlanPage() {
 
     const text = `Sampurasun Admin Bumi Upi Garut! 🌿\n\nSaya ingin konsultasi tanggal & reservasi Wedding / Event di Bumi Upi:\n• Pilihan Paket: ${currentPkg.name}\n• Rencana Jumlah Tamu: ${guestCount} Orang\n• Pilihan Add-ons: ${addonsListText || 'Belum ada'}\n• Estimasi Biaya Simulasi: Rp ${grandTotal.toLocaleString('id-ID')}\n\nMohon informasi ketersediaan tanggal dan jadwal survei lokasi / food tasting ya Kak. Hatur nuhun!`;
 
-    return `https://wa.me/6281223344550?text=${encodeURIComponent(text)}`;
+    return `https://wa.me/62895412055152?text=${encodeURIComponent(text)}`;
   };
 
   return (
@@ -419,6 +419,15 @@ export default function WeddingPlanPage() {
                   <span><strong>Softcopy Instan:</strong> Scan QR langsung masuk ke galeri HP</span>
                 </li>
               </ul>
+
+              <div className="pt-2">
+                <Link
+                  href="/photobooth"
+                  className="w-full py-2.5 px-3.5 rounded-xl bg-[#3E4F30] text-[#F5EEDC] text-xs font-bold transition flex items-center justify-center gap-1.5 hover:brightness-110 shadow-xs"
+                >
+                  <span>📸 Buka Bilik Photobox Interaktif Sekarang →</span>
+                </Link>
+              </div>
             </div>
 
             {/* Service 2: Paket Event & Wedding */}
@@ -701,7 +710,7 @@ export default function WeddingPlanPage() {
                 </p>
               </div>
               <a
-                href="https://wa.me/6281223344550?text=Halo%20Admin%20Bumi%20Upi,%20saya%20ingin%20jadwalkan%20survei%20lokasi%20venue%20wedding"
+                href="https://wa.me/62895412055152?text=Halo%20Admin%20Bumi%20Upi,%20saya%20ingin%20jadwalkan%20survei%20lokasi%20venue%20wedding"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-3 py-2 px-3 rounded-xl bg-[#D4A24C] text-[#2B2625] text-xs font-bold text-center hover:bg-white transition"

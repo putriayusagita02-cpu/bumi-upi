@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       const isRegister = mode === 'register';
 
       // Official Bumi Upi WhatsApp Number (Garut Heritage CS & Bot)
-      const adminWa = process.env.ADMIN_WHATSAPP_NUMBER || '6281223344550';
+      const adminWa = process.env.ADMIN_WHATSAPP_NUMBER || '62895412055152';
 
       // Real pre-filled WhatsApp message sent to Official Bumi Upi CS
       const officialWaMessage = isRegister

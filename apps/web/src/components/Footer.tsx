@@ -52,7 +52,7 @@ export const Footer: React.FC = () => {
             <div className="text-xs space-y-1 text-[#E0D4BA]">
               <p className="font-medium text-white">Jl. Cimanuk No. 312</p>
               <p>(Depan Fave Hotel Garut), Jawa Barat</p>
-              <p className="pt-1 text-[#D4A24C] font-mono">WhatsApp: 0812-2334-4550</p>
+              <p className="pt-1 text-[#D4A24C] font-mono">WhatsApp: 0895-4120-55152</p>
               <p className="text-[11px] text-[#A4BC98]">Instagram: @bumiupi</p>
             </div>
           </div>
