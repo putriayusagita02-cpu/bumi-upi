@@ -172,46 +172,129 @@ function generate200Customers(): CustomerProfile[] {
 
 export const INITIAL_CUSTOMERS: CustomerProfile[] = generate200Customers();
 
-export const SEGMENT_DEFINITIONS: Record<RfmSegment, { desc: string; action: string; color: string; badgeBg: string }> = {
+export interface SegmentMeta {
+  title: string;
+  desc: string;
+  objective: string;
+  action: string;
+  sopRestoran: string[];
+  incentive: string;
+  waTemplate: string;
+  roiImpact: string;
+  color: string;
+  badgeBg: string;
+}
+
+export const SEGMENT_DEFINITIONS: Record<RfmSegment, SegmentMeta> = {
   Juara: {
-    desc: 'Pelanggan terbaik, paling sering datang, dan berbelanja paling banyak.',
-    action: 'Berikan apresiasi VIP eksklusif, cicipi menu baru gratis, jadikan duta promosi.',
+    title: 'Juara (Champions VIP)',
+    desc: 'Pelanggan VIP terbaik yang sangat sering datang (16-35x), belanja terbesar (> Rp 2.5jt), dan baru berkunjung dalam 7 hari terakhir.',
+    objective: 'Pertahankan retensi 100%, berikan kenyamanan eksklusif, dan jadikan Brand Ambassador sukarela.',
+    action: 'Berikan Free Compliment Meja (Surabi Kinca Haneut / Ulen Upi), Priority Table Booking tanpa antre, dan sambutan hangat langsung dari Owner / Chef.',
+    sopRestoran: [
+      '1. Kasir / Hostess mengenali status VIP otomatis saat kartu dipindai dan mengarahkan ke meja utama Bale Garut tanpa batas antrean.',
+      '2. Dapur mengeluarkan compliment meja gratis "Surabi Kinca Haneut" atau "Ulen Upi Gurih" otomatis saat duduk (struk POS Rp 0 disubsidi resto).',
+      '3. Owner atau Head Waiter menyapa meja dalam 10 menit pertama untuk memastikan kepuasan cita rasa hidangan.'
+    ],
+    incentive: 'Free Dessert Tradisional Meja + Fast-Track Priority Table Booking akhir pekan.',
+    waTemplate: 'Sampurasun Kak [Nama] tercinta! Hatur nuhun selalu mempercayakan santapan keluarga di Bumi Upi Garut. Akhir pekan ini meja favorit Akang/Teteh sudah kami siapkan + traktiran Surabi Kinca Haneut dari Dapur Nenek langsung di meja. Ditunggu kehadirannya ya Kak!',
+    roiImpact: 'Menjaga 29 pelanggan Juara mengamankan omzet tahunan lebih dari Rp 105.000.000.',
     color: '#3E4F30',
     badgeBg: 'bg-olive-100 text-olive-800 border-olive-300'
   },
   Setia: {
-    desc: 'Pelanggan reguler yang konsisten berkunjung dengan nilai belanja stabil.',
-    action: 'Tawarkan program loyalitas tier Sahabat/Keluarga dan diskon paket keluarga.',
+    title: 'Setia (Loyal Regulars)',
+    desc: 'Pelanggan reguler yang konsisten berkunjung (10-20x) dengan nilai belanja stabil (Rp 1.4jt - 3.2jt), menjadi tulang punggung omzet resto.',
+    objective: 'Dorong kunjungan di hari kerja (Weekday Lunch Booster) dan dorong upgrade ke Tier Keluarga.',
+    action: 'Tawarkan program "Kamis Manis Dobel Poin", voucher upgrade gratis ke Paket Liwet Kastrol Komplit pada hari kerja, dan voucher ulang tahun keluarga.',
+    sopRestoran: [
+      '1. Kasir POS otomatis menawarkan promo upgrade Liwet Kastrol Komplit untuk kedatangan Selasa–Kamis.',
+      '2. Staf menginformasikan perolehan 2x Poin Reward untuk setiap pemesanan lauk ayam kampung atau gurame.',
+      '3. Sistem mengirimkan pengingat penukaran voucher traktiran saat poin loyalty mendekati ambang reward.'
+    ],
+    incentive: 'Upgrade Gratis Liwet Kastrol Komplit (Selasa-Kamis) + 2x Poin Loyalitas.',
+    waTemplate: 'Halo Sahabat Setia Bumi Upi, Kak [Nama]! Spesial untuk Kakak, nikmati Upgrade Gratis ke Paket Nasi Liwet Kastrol Komplit untuk santap siang hari kerja (Senin-Kamis) cukup tunjukkan pesan ini ke kasir. Yuk botram hangat bersama rekan dan keluarga!',
+    roiImpact: 'Meningkatkan okupansi meja hari kerja di jam makan siang sebesar +28%.',
     color: '#8A8F5F',
     badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300'
   },
   Potensial: {
-    desc: 'Pelanggan baru atau reguler dengan belanja cukup tinggi dan prospek bagus.',
-    action: 'Rekomendasikan menu pelengkap & voucher sambutan kunjungan berikutnya.',
+    title: 'Potensial (Potential Loyalists)',
+    desc: 'Pelanggan baru atau reguler (4-9x kunjungan) dengan nilai belanja cukup tinggi (Rp 600rb - 1.6jt) dan potensi besar menjadi pelanggan setia.',
+    objective: 'Bentuk kebiasaan berkunjung rutin (habit formation) dan tingkatkan AOV lewat cross-selling hidangan khas.',
+    action: 'Berikan kupon traktiran Tahu Cirawraw renyah untuk kunjungan ke-2, diskon 50% minuman signature, dan undang ke VIP WhatsApp Promo.',
+    sopRestoran: [
+      '1. Kasir mencetak struk dengan stempel "Kupon Traktiran Tahu Cirawraw Kunjungan Ke-2 (Masa Berlaku 14 Hari)".',
+      '2. Pramusaji merekomendasikan pairing minuman signature (Kopi Susu Aren Santan Garut / Es Cincau Jadoel) dengan potongan harga 50%.',
+      '3. Petugas kasir mengajak pelanggan menyimpan nomor WhatsApp resmi resto untuk info menu spesial mingguan.'
+    ],
+    incentive: 'Diskon 50% Minuman Signature Sunda + Voucher Gratis Tahu Cirawraw Kunjungan Ke-2.',
+    waTemplate: 'Hatur nuhun Kak [Nama] sudah mampir ke Bumi Upi Garut! Bagaimana rasa sambel dan liwetnya kemarin? Untuk kedatangan berikutnya dalam 14 hari ke depan, kami traktir 1 Porsi Tahu Cirawraw Renyah gratis ya! Cukup tunjukkan WhatsApp ini ke kasir.',
+    roiImpact: 'Meningkatkan konversi repeat order dari 35% menjadi 62% dalam 14 hari pertama.',
     color: '#D4A24C',
     badgeBg: 'bg-amber-100 text-amber-800 border-amber-300'
   },
   'Butuh Perhatian': {
-    desc: 'Pelanggan dengan frekuensi dan nilai belanja di atas rata-rata yang mulai jarang mampir.',
-    action: 'Kirimkan pesan personal via Telegram/WA dan voucher diskon terbatas waktu.',
+    title: 'Butuh Perhatian (Need Attention)',
+    desc: 'Pelanggan dengan frekuensi dan nilai belanja di atas rata-rata yang sudah 15-35 hari belum berkunjung kembali.',
+    objective: 'Re-engagement cepat sebelum pelanggan lupa cita rasa Bumi Upi atau terbiasa makan di tempat lain.',
+    action: 'Kirimkan pesan personal "Kami Rindu di Bumi Upi" via WhatsApp dengan voucher potongan Rp 25.000 berlaku 7 hari, plus survei kepuasan rasa.',
+    sopRestoran: [
+      '1. Sistem CRM memicu pengiriman pesan pengingat ramah otomatis di hari ke-18 sejak kunjungan terakhir.',
+      '2. Kasir POS siap memvalidasi kode voucher potongan Rp 25.000 tanpa syarat minimal belanja rumit.',
+      '3. Kasir menanyakan masukan singkat tentang rasa masakan untuk memastikan tidak ada kendala kualitas hidangan di kunjungan sebelumnya.'
+    ],
+    incentive: 'Voucher Potongan Langsung Rp 25.000 (Berlaku 7 Hari) + Es Teh Manis Jumbo Meja.',
+    waTemplate: 'Sampurasun Kak [Nama]! Meja kayu favorit dan wangi liwet kastrol Bumi Upi sudah kangen nih sama Kakak. Ini kami kirimkan Voucher Khusus Potongan Rp 25.000 yang berlaku sampai hari Minggu ini. Yuk luangkan waktu mampir santai sore ini!',
+    roiImpact: 'Menyelamatkan 40% pelanggan yang berpotensi meluncur ke segmen Berisiko.',
     color: '#634E3F',
     badgeBg: 'bg-stone-200 text-stone-800 border-stone-300'
   },
   'Hampir Lepas': {
-    desc: 'Pelanggan bernilai yang sudah lama tidak berkunjung (recency menurun).',
-    action: 'Luncurkan kampanye "Kangen Masakan Nenek" dengan penawaran menu favorit.',
+    title: 'Hampir Lepas (About to Sleep)',
+    desc: 'Pelanggan bernilai yang sudah 40-75 hari tidak berkunjung (recency menurun tajam), rentan beralih permanen.',
+    objective: 'Bangkitkan kembali minat berkunjung melalui menu baru yang menggugah selera dan paket makan beramai-ramai yang hemat.',
+    action: 'Luncurkan promo Paket Botram Berempat Hemat Rp 149.000, kirim video racikan menu baru, dan beri pengingat poin reward yang akan kedaluwarsa.',
+    sopRestoran: [
+      '1. Kirim pesan visual foto hidangan signature (Ayam Bakar Madu Pasundan & Gurame Sambal Honje) via WhatsApp broadcast.',
+      '2. Tawarkan jaminan kepuasan rasa Masakan Tradisional Garut.',
+      '3. Sertakan pengingat bahwa poin loyalitas yang dimiliki dapat langsung ditukarkan dengan hidangan lauk gratis.'
+    ],
+    incentive: 'Paket Botram Hemat Berempat Rp 149.000 + 1 Pitcher Teh Lemon Sereh Segar.',
+    waTemplate: 'Halo Kak [Nama], sudah lama sekali tidak jumpa di Bumi Upi Garut! Dapur kami baru saja merilis racikan baru Ayam Bakar Madu Pasundan yang harum legit. Khusus Kakak, nikmati Paket Makan Berempat hanya Rp 149rb + Gratis 1 Pitcher Minuman Segar. Yuk ajak sahabat reuni kecil di sini!',
+    roiImpact: 'Reaktivasi 20% basis data menghasilkan tambahan omzet Rp 24.000.000 dari transaksi meja botram.',
     color: '#B4532A',
     badgeBg: 'bg-orange-100 text-orange-800 border-orange-300'
   },
   Berisiko: {
-    desc: 'Dahulu pembelanja besar dan sering mampir, tetapi tidak pernah datang belakangan ini.',
-    action: 'Hubungi via WhatsApp secara langsung dari Owner dengan penawaran spesial.',
+    title: 'Berisiko (At Risk Big Spenders)',
+    desc: 'Dahulu pembelanja besar (frekuensi 8-22x, total belanja Rp 1.2jt - 3.5jt), tetapi sudah 2 sampai 4 bulan tidak pernah mampir sama sekali.',
+    objective: 'Rebut kembali pelanggan bernilai tinggi melalui pendekatan personal level manajemen / Owner dan atasi potensi keluhan.',
+    action: 'Hubungi secara personal via WhatsApp ramah dari Manajemen/Owner, tawarkan Traktiran Meja Rp 50.000 TANPA syarat minimal belanja, dan reservasi meja utama.',
+    sopRestoran: [
+      '1. Manajer resto memeriksa riwayat pesanan pelanggan terdahulu untuk mengetahui hidangan favorit keluarga.',
+      '2. Kirim pesan personal tulus menanyakan kabar dan feedback tanpa kesan memaksa berjualan.',
+      '3. Jika pelanggan mengonfirmasi datang, staf menyambut di pintu masuk dan memberikan meja terbaik dengan complimentary buah segar.'
+    ],
+    incentive: 'Voucher Traktiran Makan Rp 50.000 Tanpa Minimum Belanja + Free Dessert Kelapa Muda.',
+    waTemplate: 'Salam hangat dari Manajemen Bumi Upi Garut untuk Kak [Nama]. Kami sangat merindukan kehadiran Kakak yang dahulu sering mampir bersama keluarga. Bila ada pelayanan atau cita rasa kami yang kurang berkenan di masa lalu, mohon dimaafkan ya Kak. Kami ingin mentraktir Kakak Voucher Rp 50.000 tanpa syarat belanja apa pun untuk santap siang berikutnya. Semoga berkenan mampir kembali.',
+    roiImpact: 'Mengembalikan 15-25% pelanggan bernilai tinggi dengan potensi omzet kembali hingga Rp 45.000.000/tahun.',
     color: '#9E4520',
     badgeBg: 'bg-rose-100 text-rose-800 border-rose-300'
   },
   Tertidur: {
-    desc: 'Kunjungan terakhir sangat lama, frekuensi rendah, dan nilai transaksi kecil.',
-    action: 'Re-aktivasi dengan promo nobar atau voucher minuman gratis sekali datang.',
+    title: 'Tertidur (Hibernating / Dormant)',
+    desc: 'Kunjungan terakhir sangat lama (> 90-180 hari), frekuensi rendah (1-3x), dan nilai transaksi kecil (< Rp 380rb).',
+    objective: 'Re-aktivasi dengan biaya promosi rendah (low CAC) atau bersihkan database agar tidak dianggap mengirim spam.',
+    action: 'Kirimkan kampanye "Surat Rindu Nenek Garut" berhadiah Beli 1 Makanan Utama Gratis 1 Minuman Tradisional (Bajigur / Bandrek / Cincau), atau bersihkan nomor inaktif.',
+    sopRestoran: [
+      '1. Jadwalkan blast pesan triwulanan dengan pesan bertema nostalgia dan kehangatan Garut tempo doeloe.',
+      '2. Tawarkan menu entri yang ringan dan mudah disukai anak muda/keluarga.',
+      '3. Sertakan opsi sederhana: jika nomor sudah tidak aktif atau pelanggan telah pindah kota, data dapat diarsipkan.'
+    ],
+    incentive: 'Promo Beli 1 Hidangan Utama Gratis 1 Minuman Tradisional (Bajigur / Bandrek / Es Cincau).',
+    waTemplate: 'Sampurasun Kak [Nama]! Ada salam rindu dari Garut. Kapan terakhir kali santai menghirup sejuknya udara Bumi Upi? Minggu ini ada promo spesial: Beli hidangan utama apa saja, kami traktir minuman tradisional favorit Kakak. Ditunggu mampirnya ya Kak!',
+    roiImpact: 'Membangkitkan 5-10% pelanggan pasif menjadi aktif kembali dengan biaya promosi mendekati Rp 0.',
     color: '#6B7280',
     badgeBg: 'bg-gray-100 text-gray-700 border-gray-300'
   }

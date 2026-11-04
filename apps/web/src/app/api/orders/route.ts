@@ -231,10 +231,32 @@ export async function GET(req: NextRequest) {
       // fallback
     }
 
+    const phone = url.searchParams.get('phone');
     const localOrders = orderEngine.getCustomerOrders(customerId || undefined);
     const mergedMap = new Map();
+
+    const normPhone = (p?: string) => (p || '').replace(/\D/g, '').replace(/^0/, '62');
+    const targetPhone = normPhone(phone || '');
+    const targetCustId = (customerId || '').trim();
+
     for (const o of [...sharedOrders, ...localOrders]) {
-      if (!customerId || o.customerId === customerId || customerId === 'all') {
+      // If customerId is 'all', return all
+      if (targetCustId === 'all') {
+        mergedMap.set(o.id, o);
+        continue;
+      }
+
+      // If specific customer filter is requested
+      if (targetCustId || targetPhone) {
+        const matchId = targetCustId && o.customerId && String(o.customerId).trim() === targetCustId;
+        const ordPhone = normPhone(o.customerPhone);
+        const matchPhone = targetPhone && ordPhone && targetPhone === ordPhone;
+
+        if (matchId || matchPhone) {
+          mergedMap.set(o.id, o);
+        }
+      } else {
+        // If no filter requested, return all (fallback)
         mergedMap.set(o.id, o);
       }
     }

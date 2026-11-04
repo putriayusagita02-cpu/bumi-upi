@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
+import { CustomerProfile } from '../../lib/types';
 import { MOCK_VOUCHERS } from '../../lib/catalogData';
 import { MemberCard } from '../../components/ui/MemberCard';
 import { SuratRinduModal } from '../../components/SuratRinduModal';
@@ -88,12 +89,48 @@ export default function MemberPage() {
   const [historyOrders, setHistoryOrders] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
+  // Helper isolasi kepemilikan pesanan: pastikan pesanan sah milik akun yang sedang aktif
+  const doesOrderBelongToCustomer = (ord: any, cust: CustomerProfile | null): boolean => {
+    if (!cust) return false;
+
+    // 1. Cocokkan ID Customer
+    const custId = cust.id ? String(cust.id).trim() : '';
+    const ordCustId = ord.customerId ? String(ord.customerId).trim() : '';
+    if (custId && ordCustId && custId === ordCustId) {
+      return true;
+    }
+
+    // 2. Cocokkan Nomor HP (normalisasi 08... dan 628...)
+    const normPhone = (p?: string) => (p || '').replace(/\D/g, '').replace(/^0/, '62');
+    const custPhone = normPhone(cust.phone);
+    const ordPhone = normPhone(ord.customerPhone);
+    if (custPhone && ordPhone && custPhone === ordPhone) {
+      return true;
+    }
+
+    // 3. Fallback nama jika ID & nomor HP kosong pada rekaman lokal lama
+    const custName = (cust.name || '').trim().toLowerCase();
+    const ordName = (ord.customerName || '').trim().toLowerCase();
+    if (custName && ordName && custName === ordName && (!ordCustId || ordCustId === custId) && (!ordPhone || ordPhone === custPhone)) {
+      return true;
+    }
+
+    return false;
+  };
+
   const fetchHistory = async () => {
+    if (!customer) {
+      setHistoryOrders([]);
+      return;
+    }
     try {
       setHistoryLoading(true);
       let serverOrders: any[] = [];
       try {
-        const res = await fetch(`/api/orders?customerId=${customer?.id || ''}`);
+        const queryParams = new URLSearchParams();
+        if (customer.id) queryParams.set('customerId', customer.id);
+        if (customer.phone) queryParams.set('phone', customer.phone);
+        const res = await fetch(`/api/orders?${queryParams.toString()}`);
         const data = await res.json();
         if (data.success && Array.isArray(data.orders)) {
           serverOrders = data.orders;
@@ -102,7 +139,7 @@ export default function MemberPage() {
         console.warn('Failed to fetch history from server', e);
       }
 
-      // Ambil juga pesanan tersimpan di browser localStorage agar transaksi terkini langsung tampil
+      // Ambil juga pesanan tersimpan di browser localStorage
       let localOrders: any[] = [];
       if (typeof window !== 'undefined') {
         try {
@@ -111,11 +148,15 @@ export default function MemberPage() {
         } catch {}
       }
 
+      // ISOLASI KETAT: Hanya tampilkan pesanan yang sah milik akun pelanggan yang sedang aktif
+      const validServerOrders = serverOrders.filter((ord) => doesOrderBelongToCustomer(ord, customer));
+      const validLocalOrders = localOrders.filter((ord) => doesOrderBelongToCustomer(ord, customer));
+
       const mergedMap = new Map();
-      for (const ord of serverOrders) {
+      for (const ord of validServerOrders) {
         mergedMap.set(ord.id, ord);
       }
-      for (const ord of localOrders) {
+      for (const ord of validLocalOrders) {
         if (!mergedMap.has(ord.id)) {
           mergedMap.set(ord.id, ord);
         } else {
@@ -125,9 +166,25 @@ export default function MemberPage() {
         }
       }
 
-      const list = Array.from(mergedMap.values()).sort(
+      let list = Array.from(mergedMap.values()).sort(
         (a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
       );
+
+      // Hanya tampilkan data demo jika akun adalah akun resmi demo Dimas Kurniawan DAN belum ada pesanan aktif
+      const isOfficialDemoUser = customer.id === 'usr-cust-demo' || customer.phone === '081234567890';
+      if (list.length === 0 && isOfficialDemoUser) {
+        list = history.map((tx) => ({
+          id: tx.id,
+          orderNumber: `BU-DEMO-${tx.id.toUpperCase()}`,
+          status: 'completed',
+          items: [{ quantity: 1, itemName: tx.items }],
+          finalAmount: tx.amount,
+          pointsEarned: tx.points,
+          createdAt: '2026-10-28T12:00:00Z',
+          tableNumber: 'Meja 02',
+          paymentMethod: 'qris',
+        }));
+      }
 
       setHistoryOrders(list);
     } catch (e) {
@@ -138,11 +195,13 @@ export default function MemberPage() {
   };
 
   useEffect(() => {
+    // Reset saat akun beralih agar tidak sempat menampilkan riwayat akun sebelumnya
+    setHistoryOrders([]);
     fetchHistory();
     // Auto-refresh riwayat setiap 5 detik agar otomatis terbarui saat status berubah
     const interval = setInterval(fetchHistory, 5000);
     return () => clearInterval(interval);
-  }, [customer?.id, activeTab]);
+  }, [customer?.id, customer?.phone, activeTab]);
 
   const vouchers = MOCK_VOUCHERS;
 
@@ -410,7 +469,7 @@ export default function MemberPage() {
           <div className="bg-[#FBF7EE] border border-[#E8DCC2] rounded-2xl overflow-hidden shadow-2xs">
             <div className="p-3 bg-[#EFE7D5]/70 border-b border-[#E8DCC2] flex items-center justify-between text-xs">
               <span className="font-semibold text-[#634E3F]">
-                Total: {historyOrders.length > 0 ? historyOrders.length : history.length} Transaksi Tercatat
+                Total: {historyOrders.length} Transaksi Tercatat untuk {customer?.name || 'Akun Ini'}
               </span>
               <button
                 type="button"
@@ -478,23 +537,29 @@ export default function MemberPage() {
                   );
                 })
               ) : (
-                history.map((tx) => (
-                  <div
-                    key={tx.id}
-                    className="p-4 flex items-center justify-between text-xs hover:bg-[#F5EEDC]/40 transition-colors"
-                  >
-                    <div className="space-y-0.5">
-                      <p className="font-semibold text-[#2B2625]">{tx.items}</p>
-                      <p className="text-[11px] text-[#8C7767]">{tx.date} • Kasir Bale Garut</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-mono font-bold text-[#2B2625]">
-                        Rp {tx.amount.toLocaleString('id-ID')}
-                      </p>
-                      <p className="text-[11px] font-bold text-[#3E4F30]">+{tx.points} Poin</p>
-                    </div>
+                <div className="p-8 text-center bg-[#FBF7EE] space-y-3">
+                  <div className="w-14 h-14 mx-auto rounded-full bg-[#EFE7D5] flex items-center justify-center text-2xl shadow-2xs">
+                    📜
                   </div>
-                ))
+                  <h4
+                    className="font-serif font-bold text-base text-[#2B2625]"
+                    style={{ fontFamily: 'var(--font-fraunces, "Fraunces", Georgia, serif)' }}
+                  >
+                    Belum Ada Riwayat Pesanan
+                  </h4>
+                  <p className="text-xs text-[#634E3F] max-w-sm mx-auto leading-relaxed">
+                    Halo <strong>{customer?.name || 'Pelanggan'}</strong>! Akun Anda saat ini belum memiliki transaksi pesanan tercatat. Semua pesanan meja Anda nantinya akan otomatis muncul dan terakumulasi di sini.
+                  </p>
+                  <div className="pt-2">
+                    <Link
+                      href="/menu"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#3E4F30] text-[#F5EEDC] text-xs font-bold shadow-md hover:brightness-110 transition active:scale-95"
+                    >
+                      <span>📖</span>
+                      <span>Buka Menu & Pesan Sekarang</span>
+                    </Link>
+                  </div>
+                </div>
               )}
             </div>
           </div>
