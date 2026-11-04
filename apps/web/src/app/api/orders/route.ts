@@ -79,11 +79,14 @@ export async function POST(req: NextRequest) {
       }
     } catch {}
 
-    // 2. Simpan ke data layer bersama (@bumi-upi/db)
+    // 2. Simpan ke data layer bersama (@bumi-upi/db) dan kurangi stok secara real-time
     try {
       const dbPkg = await import('@bumi-upi/db' as any);
       if (dbPkg && typeof dbPkg.saveSharedOrder === 'function') {
         dbPkg.saveSharedOrder(createdOrder);
+      }
+      if (dbPkg && typeof dbPkg.deductSharedStock === 'function') {
+        dbPkg.deductSharedStock(createdOrder.items || items || []);
       }
     } catch {}
 

@@ -314,6 +314,19 @@ export class AdminStore {
       }
 
       if (!existingMap.has(inc.id)) {
+        // Kurangi stok inventaris untuk item dalam pesanan baru secara real-time
+        for (const it of (inc.items || [])) {
+          const pId = it.productId || it.id;
+          const qty = it.quantity || 1;
+          const catItem = this.items.find(
+            (i) => i.id === pId || i.name.toLowerCase() === (it.itemName || it.name || '').toLowerCase()
+          );
+          if (catItem && catItem.stock !== undefined) {
+            catItem.stock = Math.max(0, catItem.stock - qty);
+            if (catItem.stock === 0) catItem.isAvailable = false;
+          }
+        }
+
         const record: OrderRecord = {
           id: inc.id,
           orderNumber: inc.orderNumber || `BU-ORD-${inc.id.slice(-6)}`,
@@ -376,6 +389,21 @@ export class AdminStore {
       const data = await res.json();
       if (data.success && Array.isArray(data.orders)) {
         this.mergeLiveOrders(data.orders);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Sync real-time inventory from shared API
+  async syncLiveInventoryFromApi(): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+      const res = await fetch('/api/inventory', { cache: 'no-store' });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.items) && data.items.length > 0) {
+        this.items = data.items;
+        this.saveToStorage();
       }
     } catch {
       // ignore

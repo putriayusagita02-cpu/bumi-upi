@@ -19,11 +19,14 @@ export async function POST(req: NextRequest) {
     if (body.id && (body.orderNumber || body.status)) {
       adminStore.mergeLiveOrders([body]);
 
-      // Simpan ke shared layer
+      // Simpan ke shared layer dan kurangi stok inventaris real-time
       try {
         const dbPkg = await import('@bumi-upi/db' as any);
         if (dbPkg && typeof dbPkg.saveSharedOrder === 'function') {
           dbPkg.saveSharedOrder(body);
+        }
+        if (dbPkg && typeof dbPkg.deductSharedStock === 'function') {
+          dbPkg.deductSharedStock(body.items || []);
         }
       } catch {}
 
@@ -46,6 +49,14 @@ export async function POST(req: NextRequest) {
         { status: 400, headers: corsHeaders }
       );
     }
+
+    // Sinkronkan pengurangan stok ke data layer bersama
+    try {
+      const dbPkg = await import('@bumi-upi/db' as any);
+      if (dbPkg && typeof dbPkg.deductSharedStock === 'function') {
+        dbPkg.deductSharedStock(result.order?.items || body.items || []);
+      }
+    } catch {}
 
     return NextResponse.json(
       {

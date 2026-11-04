@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CATEGORIES, MENU_ITEMS } from '../../lib/catalogData';
 import { MenuItem, CartCustomization } from '../../lib/types';
@@ -19,8 +19,33 @@ function MenuCatalogContent() {
   const [activeModalItem, setActiveModalItem] = useState<MenuItem | null>(null);
   const [addedSuccessId, setAddedSuccessId] = useState<number | null>(null);
   const [isKamusModalOpen, setIsKamusModalOpen] = useState(false);
+  const [liveStockMap, setLiveStockMap] = useState<Record<number, { stock: number; isAvailable: boolean }>>({});
 
   const { addItem } = useCart();
+
+  // Sinkronisasi status ketersediaan stok fisik real-time dengan Dapur & Inventaris Admin
+  useEffect(() => {
+    const fetchLiveStock = async () => {
+      try {
+        const res = await fetch('/api/inventory', { cache: 'no-store' });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.items)) {
+          const map: Record<number, { stock: number; isAvailable: boolean }> = {};
+          for (const it of data.items) {
+            map[it.id] = {
+              stock: it.stock !== undefined ? it.stock : 45,
+              isAvailable: it.isAvailable !== undefined ? it.isAvailable : ((it.stock ?? 45) > 0)
+            };
+          }
+          setLiveStockMap(map);
+        }
+      } catch {}
+    };
+
+    fetchLiveStock();
+    const interval = setInterval(fetchLiveStock, 3500);
+    return () => clearInterval(interval);
+  }, []);
 
   const filterTags = ['Semua', 'Rekomendasi', 'Favorit', 'Pedas', 'Untuk Anak'];
 
@@ -53,6 +78,10 @@ function MenuCatalogContent() {
   }, [selectedCategory, searchQuery, selectedTag]);
 
   const handleCardAdd = (item: MenuItem) => {
+    const live = liveStockMap[item.id];
+    const isOut = live ? (live.stock <= 0 || !live.isAvailable) : false;
+    if (isOut) return;
+
     // If item has variants or multiple temps, open modal
     if (item.variants || (item.temps && item.temps.length > 1)) {
       setActiveModalItem(item);
@@ -213,11 +242,19 @@ function MenuCatalogContent() {
             const hasVariants = !!item.variants;
             const hasTemps = item.temps && item.temps.length > 1;
             const isJustAdded = addedSuccessId === item.id;
+            const live = liveStockMap[item.id];
+            const stock = live ? live.stock : 45;
+            const isOutOfStock = live ? (live.stock <= 0 || !live.isAvailable) : false;
+            const isLowStock = stock > 0 && stock <= 5;
 
             return (
               <div
                 key={item.id}
-                className="flex flex-col justify-between p-4 rounded-2xl bg-[#FBF7EE] border border-[#E8DCC2] hover:border-[#3E4F30] shadow-2xs hover:shadow-md transition-all duration-200"
+                className={`flex flex-col justify-between p-4 rounded-2xl bg-[#FBF7EE] border transition-all duration-200 ${
+                  isOutOfStock
+                    ? 'border-red-200 bg-[#FBF7EE]/80'
+                    : 'border-[#E8DCC2] hover:border-[#3E4F30] shadow-2xs hover:shadow-md'
+                }`}
               >
                 <div className="space-y-2">
                   {/* Category & Tags Header */}
@@ -227,6 +264,17 @@ function MenuCatalogContent() {
                     </span>
 
                     <div className="flex flex-wrap gap-1">
+                      {/* Real-Time Stock Badges */}
+                      {isOutOfStock ? (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-300">
+                          ⛔ Habis Terjual
+                        </span>
+                      ) : isLowStock ? (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
+                          ⚡ Sisa {stock} Porsi!
+                        </span>
+                      ) : null}
+
                       {item.tags?.includes('Rekomendasi') && (
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#FDF4DF] text-[#B88632] flex items-center gap-0.5">
                           <Sparkles className="w-3 h-3" /> Rekomendasi
@@ -251,7 +299,7 @@ function MenuCatalogContent() {
                   </div>
 
                   {/* Name & Description */}
-                  <h3 className="font-serif text-base font-bold text-[#2B2625] leading-snug">
+                  <h3 className={`font-serif text-base font-bold leading-snug ${isOutOfStock ? 'text-stone-500 line-through' : 'text-[#2B2625]'}`}>
                     {item.name}
                   </h3>
                   {item.description && (
@@ -298,14 +346,19 @@ function MenuCatalogContent() {
 
                   <button
                     type="button"
+                    disabled={isOutOfStock}
                     onClick={() => handleCardAdd(item)}
-                    className={`py-1.5 px-3.5 rounded-xl font-semibold text-xs shadow-xs transition-all active:scale-95 flex items-center gap-1.5 ${
-                      isJustAdded
+                    className={`py-1.5 px-3.5 rounded-xl font-semibold text-xs shadow-xs transition-all flex items-center gap-1.5 ${
+                      isOutOfStock
+                        ? 'bg-stone-200 text-stone-500 border border-stone-300 cursor-not-allowed'
+                        : isJustAdded
                         ? 'bg-[#3E4F30] text-white'
-                        : 'bg-[#B4532A] text-white hover:brightness-110'
+                        : 'bg-[#B4532A] text-white hover:brightness-110 active:scale-95'
                     }`}
                   >
-                    {isJustAdded ? (
+                    {isOutOfStock ? (
+                      <span>Habis</span>
+                    ) : isJustAdded ? (
                       <>
                         <Check className="w-3.5 h-3.5" />
                         <span>Ditambahkan!</span>

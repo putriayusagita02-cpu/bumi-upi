@@ -59,17 +59,21 @@ export default function PosPage() {
   const [selectedTemp, setSelectedTemp] = useState<'dingin' | 'panas'>('dingin');
   const [variantNotes, setVariantNotes] = useState<string>('');
 
-  // Receipt Modal state
+  // Live KDS and Orders Sync
   const [completedOrder, setCompletedOrder] = useState<OrderRecord | null>(null);
   const [showReceipt, setShowReceipt] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [liveKdsCount, setLiveKdsCount] = useState<number>(0);
   const [latestWebOrder, setLatestWebOrder] = useState<OrderRecord | null>(null);
+  const [posItems, setPosItems] = useState<MenuItem[]>(adminStore.items || CATALOG_105_ITEMS);
 
   useEffect(() => {
     adminStore.loadFromStorage();
-    const syncOrders = async () => {
+    const syncOrdersAndInventory = async () => {
       await adminStore.syncLiveOrdersFromApi();
+      await adminStore.syncLiveInventoryFromApi();
+      setPosItems([...adminStore.items]);
+
       const active = adminStore.orders.filter(
         (o) => o.status === 'confirmed' || o.status === 'preparing'
       );
@@ -80,14 +84,14 @@ export default function PosPage() {
       setLatestWebOrder(recentWeb || null);
     };
 
-    syncOrders();
-    const interval = setInterval(syncOrders, 3000);
+    syncOrdersAndInventory();
+    const interval = setInterval(syncOrdersAndInventory, 2500);
     return () => clearInterval(interval);
   }, []);
 
-  // Filter 105 Catalog items
+  // Filter 105 Catalog items using live posItems
   const filteredItems = useMemo(() => {
-    return CATALOG_105_ITEMS.filter((item) => {
+    return posItems.filter((item) => {
       const matchCat = selectedCategory === 'all' || item.category === selectedCategory;
       const matchSearch =
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -95,7 +99,7 @@ export default function PosPage() {
         (item.tags && item.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase())));
       return matchCat && matchSearch;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [posItems, searchQuery, selectedCategory]);
 
   // Cart Subtotal
   const subtotal = useMemo(() => {
@@ -128,6 +132,12 @@ export default function PosPage() {
 
   // Add Item to cart
   const handleItemClick = (item: MenuItem) => {
+    const liveItem = posItems.find((i) => i.id === item.id) || item;
+    if ((liveItem.stock !== undefined && liveItem.stock <= 0) || liveItem.isAvailable === false) {
+      showToast(`⛔ Menu "${item.name}" sedang HABIS (0 Unit) di dapur!`);
+      return;
+    }
+
     const hasVariants = Boolean(item.variants || (item.temps && item.temps.length > 1));
     if (hasVariants) {
       setVariantModalItem(item);
@@ -439,15 +449,36 @@ export default function PosPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[640px] overflow-y-auto pr-1">
             {filteredItems.map((item) => {
               const hasVariant = Boolean(item.variants || (item.temps && item.temps.length > 1));
+              const isOut = (item.stock !== undefined && item.stock <= 0) || item.isAvailable === false;
+              const isLow = item.stock !== undefined && item.stock > 0 && item.stock <= 10;
+
               return (
                 <div
                   key={item.id}
                   onClick={() => handleItemClick(item)}
-                  className="bg-white p-3 rounded-xl border border-krem-border hover:border-olive-400 hover:shadow-md transition cursor-pointer flex flex-col justify-between group active:scale-[0.98]"
+                  className={`p-3 rounded-xl border transition flex flex-col justify-between group ${
+                    isOut
+                      ? 'bg-red-50/50 border-red-200 opacity-75 cursor-not-allowed'
+                      : 'bg-white border-krem-border hover:border-olive-400 hover:shadow-md cursor-pointer active:scale-[0.98]'
+                  }`}
                 >
                   <div>
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-1 mb-1.5">
+                    {/* Tags and Real-Time Stock Pill */}
+                    <div className="flex flex-wrap items-center gap-1 mb-1.5">
+                      {isOut ? (
+                        <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-red-600 text-white shadow-2xs">
+                          Habis (86)
+                        </span>
+                      ) : isLow ? (
+                        <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                          Sisa {item.stock}
+                        </span>
+                      ) : (
+                        <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-medium bg-krem-surface text-kopi-muted border border-krem-border">
+                          {item.stock ?? 45} Unit
+                        </span>
+                      )}
+
                       {item.tags?.map((t) => (
                         <span
                           key={t}
@@ -471,7 +502,7 @@ export default function PosPage() {
                       )}
                     </div>
 
-                    <h4 className="font-serif font-bold text-xs text-kopi group-hover:text-olive transition line-clamp-2">
+                    <h4 className={`font-serif font-bold text-xs transition line-clamp-2 ${isOut ? 'text-stone-500 line-through' : 'text-kopi group-hover:text-olive'}`}>
                       {item.name}
                     </h4>
                     <span className="text-[10px] text-kopi-muted block">{item.category}</span>
@@ -482,8 +513,13 @@ export default function PosPage() {
                       Rp {item.price.toLocaleString('id-ID')}
                     </span>
                     <button
-                      className="w-6 h-6 rounded-md bg-olive-50 text-olive group-hover:bg-olive group-hover:text-white flex items-center justify-center transition"
-                      title="Tambah ke Keranjang"
+                      disabled={isOut}
+                      className={`w-6 h-6 rounded-md flex items-center justify-center transition ${
+                        isOut
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-olive-50 text-olive group-hover:bg-olive group-hover:text-white'
+                      }`}
+                      title={isOut ? 'Stok Habis' : 'Tambah ke Keranjang'}
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
