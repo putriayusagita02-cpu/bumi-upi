@@ -70,7 +70,7 @@ export const AsmrAmbientPlayer: React.FC = () => {
   return (
     <>
       {/* Floating Pill: Bottom Left (Balances Tanya Upi at Bottom Right) */}
-      <div className="fixed bottom-6 left-6 z-40 print:hidden">
+      <div className="fixed bottom-20 left-4 md:bottom-6 md:left-6 z-40 print:hidden">
         <div className="flex items-center gap-1.5 p-1 rounded-full bg-[#2B2625]/90 backdrop-blur-md border border-[#D4A24C]/60 shadow-2xl text-[#F5EEDC] transition-all hover:scale-102">
           {/* Main Action Pill */}
           <button
@@ -122,7 +122,7 @@ export const AsmrAmbientPlayer: React.FC = () => {
 
       {/* Expanded Soundscape Control Card */}
       {isExpanded && (
-        <div className="fixed bottom-20 left-6 z-50 w-80 sm:w-96 rounded-3xl bg-[#2B2625]/95 backdrop-blur-lg border border-[#D4A24C]/60 p-5 shadow-2xl text-[#F5EEDC] animate-in slide-in-from-bottom-3 duration-200 print:hidden">
+        <div className="fixed bottom-36 left-4 md:bottom-20 md:left-6 z-50 w-[calc(100vw-2rem)] max-w-sm sm:w-96 rounded-3xl bg-[#2B2625]/95 backdrop-blur-lg border border-[#D4A24C]/60 p-5 shadow-2xl text-[#F5EEDC] animate-in slide-in-from-bottom-3 duration-200 print:hidden">
           {/* Header */}
           <div className="flex items-start justify-between pb-3 border-b border-white/15">
             <div>

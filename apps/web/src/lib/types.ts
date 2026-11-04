@@ -89,6 +89,9 @@ export interface Voucher {
   maxDiscount?: number;
   expiresAt: string;
   isRedeemed?: boolean;
+  badge?: string;
+  isFromHoki?: boolean;
+  freeItemId?: number;
 }
 
 export interface CustomerProfile {

@@ -33,27 +33,41 @@ export const Navbar: React.FC = () => {
     <>
       <header className="sticky top-0 z-30 w-full bg-[#F5EEDC]/95 backdrop-blur-md border-b border-[#E8DCC2] shadow-xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          {/* Brand Logo with Real SVG */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3E4F30] p-1 border border-[#D4A24C]/60 shadow-sm overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
-              <img
-                src="/brand/Logo_bumi_upi.svg"
-                alt="Logo Bumi Upi"
-                className="w-full h-full object-contain filter drop-shadow-xs"
-              />
-            </div>
-            <div>
-              <span
-                className="font-serif text-lg font-bold tracking-tight text-[#2B2625] group-hover:text-[#3E4F30] transition-colors"
-                style={{ fontFamily: 'var(--font-fraunces, "Fraunces", Georgia, serif)' }}
+          {/* Brand Logo & Mobile Home Pill */}
+          <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2.5 group" title="Kembali ke Beranda Bumi Upi">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3E4F30] p-1 border border-[#D4A24C]/60 shadow-sm overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
+                <img
+                  src="/brand/Logo_bumi_upi.svg"
+                  alt="Logo Bumi Upi"
+                  className="w-full h-full object-contain filter drop-shadow-xs"
+                />
+              </div>
+              <div>
+                <span
+                  className="font-serif text-lg font-bold tracking-tight text-[#2B2625] group-hover:text-[#3E4F30] transition-colors"
+                  style={{ fontFamily: 'var(--font-fraunces, "Fraunces", Georgia, serif)' }}
+                >
+                  Bumi Upi
+                </span>
+                <p className="text-[10px] text-[#634E3F] leading-tight font-medium hidden sm:block">
+                  Rumah Tamah & Kopi Garut
+                </p>
+              </div>
+            </Link>
+
+            {/* Tombol Beranda Khusus Handphone jika sedang berada di halaman lain */}
+            {pathname !== '/' && (
+              <Link
+                href="/"
+                className="md:hidden flex items-center gap-1 py-1 px-2.5 rounded-lg bg-[#3E4F30]/10 text-[#3E4F30] text-[11px] font-bold border border-[#3E4F30]/25 hover:bg-[#3E4F30]/20 active:scale-95 transition-all"
+                title="Kembali ke Beranda"
               >
-                Bumi Upi
-              </span>
-              <p className="text-[10px] text-[#634E3F] leading-tight font-medium hidden sm:block">
-                Rumah Tamah & Kopi Garut
-              </p>
-            </div>
-          </Link>
+                <span>🏡</span>
+                <span>Beranda</span>
+              </Link>
+            )}
+          </div>
 
           {/* Table Selector Pill — HANYA TAMPIL KETIKA SUDAH MASUK */}
           {isLoggedIn && (

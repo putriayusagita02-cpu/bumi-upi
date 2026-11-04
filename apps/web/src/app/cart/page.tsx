@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { MOCK_VOUCHERS } from '../../lib/catalogData';
+import { MENU_ITEMS } from '../../lib/catalogData';
+import { Voucher } from '../../lib/types';
+import { getAllAvailableVouchers, findVoucherByCode } from '../../lib/voucherStore';
 import { TableSelectorModal } from '../../components/TableSelectorModal';
 import { Plus, Minus, X, Ticket, ShoppingBag, Utensils, ArrowRight, ArrowLeft } from '../../components/icons';
 import { asmrAudioEngine } from '../../lib/asmrAudioEngine';
@@ -16,6 +18,7 @@ export default function CartPage() {
     items,
     tableNumber,
     orderType,
+    addItem,
     updateQuantity,
     setItemQuantity,
     removeItem,
@@ -36,6 +39,11 @@ export default function CartPage() {
   const [voucherSuccess, setVoucherSuccess] = useState('');
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
   const [isPlayingSoundtrack, setIsPlayingSoundtrack] = useState(false);
+  const [availableVouchers, setAvailableVouchers] = useState<Voucher[]>([]);
+
+  useEffect(() => {
+    setAvailableVouchers(getAllAvailableVouchers());
+  }, []);
 
   const toggleSoundtrack = () => {
     if (isPlayingSoundtrack) {
@@ -55,9 +63,9 @@ export default function CartPage() {
     const code = voucherInput.trim().toUpperCase();
     if (!code) return;
 
-    const found = MOCK_VOUCHERS.find((v) => v.code.toUpperCase() === code);
+    const found = findVoucherByCode(code);
     if (!found) {
-      setVoucherError('Kode voucher tidak ditemukan');
+      setVoucherError('Kode voucher tidak ditemukan atau belum aktif');
       return;
     }
 
@@ -67,10 +75,20 @@ export default function CartPage() {
     } else {
       setVoucherSuccess(res.message);
       setVoucherInput('');
+      // Jika voucher berupa gratis menu, pastikan item tersebut ada di keranjang
+      if (found.freeItemId) {
+        const hasItem = items.some((it) => it.menuItem.id === found.freeItemId);
+        if (!hasItem) {
+          const freeItem = MENU_ITEMS.find((m) => m.id === found.freeItemId);
+          if (freeItem) {
+            addItem(freeItem, { notes: 'Traktiran Gratis Pojok Hoki' }, 1);
+          }
+        }
+      }
     }
   };
 
-  const handleSelectVoucherPill = (v: typeof MOCK_VOUCHERS[0]) => {
+  const handleSelectVoucherPill = (v: Voucher) => {
     setVoucherError('');
     setVoucherSuccess('');
     const res = applyVoucher(v);
@@ -78,6 +96,16 @@ export default function CartPage() {
       setVoucherError(res.message);
     } else {
       setVoucherSuccess(res.message);
+      // Jika voucher berupa gratis menu, pastikan item tersebut ada di keranjang
+      if (v.freeItemId) {
+        const hasItem = items.some((it) => it.menuItem.id === v.freeItemId);
+        if (!hasItem) {
+          const freeItem = MENU_ITEMS.find((m) => m.id === v.freeItemId);
+          if (freeItem) {
+            addItem(freeItem, { notes: 'Traktiran Gratis Pojok Hoki' }, 1);
+          }
+        }
+      }
     }
   };
 
@@ -363,7 +391,7 @@ export default function CartPage() {
                 Voucher Tersedia untuk Anda:
               </p>
               <div className="space-y-1.5">
-                {MOCK_VOUCHERS.map((v) => {
+                {availableVouchers.map((v) => {
                   const isApplied = appliedVoucher?.id === v.id;
                   const isEligible = subtotal >= v.minSpend;
                   return (
@@ -373,21 +401,28 @@ export default function CartPage() {
                       onClick={() => handleSelectVoucherPill(v)}
                       className={`w-full text-left p-2.5 rounded-xl border text-xs transition-all flex items-start justify-between gap-2 ${
                         isApplied
-                          ? 'border-[#3E4F30] bg-[#E4EADF] text-[#3E4F30] font-bold'
+                          ? 'border-[#3E4F30] bg-[#E4EADF] text-[#3E4F30] font-bold ring-1 ring-[#3E4F30]'
+                          : v.isFromHoki
+                          ? 'border-[#D4A24C] bg-[#FFFBF0] hover:border-[#B4532A]'
                           : isEligible
                           ? 'border-[#E8DCC2] bg-white hover:border-[#D4A24C]'
                           : 'border-[#E8DCC2] bg-white/60 opacity-60'
                       }`}
                     >
                       <div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-mono font-bold text-[#B4532A]">{v.code}</span>
                           <span className="font-semibold text-[#2B2625]">{v.title}</span>
+                          {v.badge && (
+                            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-[#D4A24C] text-[#2B2625] font-extrabold shadow-2xs">
+                              {v.badge}
+                            </span>
+                          )}
                         </div>
-                        <p className="text-[10px] text-[#634E3F]">{v.description}</p>
+                        <p className="text-[10px] text-[#634E3F] mt-0.5">{v.description}</p>
                       </div>
                       <span className="text-[10px] font-semibold text-[#3E4F30] shrink-0">
-                        {isApplied ? '✓ Terpasang' : isEligible ? 'Gunakan' : `Min. Rp ${(v.minSpend / 1000)}rb`}
+                        {isApplied ? '✓ Terpasang' : isEligible ? 'Gunakan' : v.minSpend > 0 ? `Min. Rp ${(v.minSpend / 1000)}rb` : 'Gunakan'}
                       </span>
                     </button>
                   );

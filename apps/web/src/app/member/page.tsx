@@ -2,17 +2,33 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
-import { CustomerProfile } from '../../lib/types';
-import { MOCK_VOUCHERS } from '../../lib/catalogData';
+import { useCart } from '../../context/CartContext';
+import { CustomerProfile, Voucher } from '../../lib/types';
+import { getAllAvailableVouchers, getWonPrizesHistory } from '../../lib/voucherStore';
 import { MemberCard } from '../../components/ui/MemberCard';
 import { SuratRinduModal } from '../../components/SuratRinduModal';
 import { Ticket, Clock, CheckCircle2, ShoppingBag, ArrowRight, User } from '../../components/icons';
 
 export default function MemberPage() {
+  const router = useRouter();
   const { customer, isLoggedIn, logout, updateProfile, switchCustomer, demoUsers } = useAuth();
+  const { applyVoucher } = useCart();
   const [activeTab, setActiveTab] = useState<'vouchers' | 'history' | 'profile' | 'switch'>('vouchers');
   const [isSuratModalOpen, setIsSuratModalOpen] = useState(false);
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [wonPrizes, setWonPrizes] = useState<any[]>([]);
+
+  useEffect(() => {
+    setVouchers(getAllAvailableVouchers());
+    setWonPrizes(getWonPrizesHistory());
+  }, []);
+
+  const handleUseVoucher = (v: Voucher) => {
+    applyVoucher(v);
+    router.push('/cart');
+  };
 
   // Form states for profile editing
   const [name, setName] = useState('');
@@ -202,8 +218,6 @@ export default function MemberPage() {
     const interval = setInterval(fetchHistory, 5000);
     return () => clearInterval(interval);
   }, [customer?.id, customer?.phone, activeTab]);
-
-  const vouchers = MOCK_VOUCHERS;
 
   // Fallback initial transaction history
   const history = [
@@ -425,42 +439,93 @@ export default function MemberPage() {
 
         {/* Tab 1: Vouchers */}
         {activeTab === 'vouchers' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {vouchers.map((v) => (
-              <div
-                key={v.id}
-                className="p-5 rounded-2xl bg-[#FBF7EE] border-2 border-dashed border-[#D4A24C] shadow-2xs space-y-3 flex flex-col justify-between"
-              >
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[#D4A24C] text-[#2B2625]">
-                      {v.code}
-                    </span>
-                    <span className="text-[10px] text-[#8C7767]">
-                      Exp: {new Date(v.expiresAt).toLocaleDateString('id-ID')}
-                    </span>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {vouchers.map((v) => (
+                <div
+                  key={v.id}
+                  className={`p-5 rounded-2xl bg-[#FBF7EE] border-2 shadow-2xs space-y-3 flex flex-col justify-between ${
+                    v.isFromHoki
+                      ? 'border-[#D4A24C] bg-gradient-to-br from-[#FFFDF8] to-[#FBF5E8] ring-1 ring-[#D4A24C]/40'
+                      : 'border-dashed border-[#D4A24C]'
+                  }`}
+                >
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
+                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[#D4A24C] text-[#2B2625]">
+                        {v.code}
+                      </span>
+                      {v.badge && (
+                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-[#B4532A] text-white">
+                          {v.badge}
+                        </span>
+                      )}
+                      <span className="text-[10px] text-[#8C7767]">
+                        Exp: {new Date(v.expiresAt).toLocaleDateString('id-ID')}
+                      </span>
+                    </div>
+                    <h4 className="font-serif text-sm font-bold text-[#2B2625] pt-1">
+                      {v.title}
+                    </h4>
+                    <p className="text-[11px] text-[#634E3F] leading-relaxed">
+                      {v.description}
+                    </p>
                   </div>
-                  <h4 className="font-serif text-sm font-bold text-[#2B2625] pt-1">
-                    {v.title}
-                  </h4>
-                  <p className="text-[11px] text-[#634E3F] leading-relaxed">
-                    {v.description}
-                  </p>
-                </div>
 
-                <div className="pt-3 border-t border-[#E8DCC2]/60 flex items-center justify-between">
-                  <span className="text-[10px] font-semibold text-[#3E4F30]">
-                    Min. belanja Rp {v.minSpend.toLocaleString('id-ID')}
+                  <div className="pt-3 border-t border-[#E8DCC2]/60 flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-[#3E4F30]">
+                      {v.minSpend > 0 ? `Min. Rp ${v.minSpend.toLocaleString('id-ID')}` : 'Tanpa Min. Belanja'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleUseVoucher(v)}
+                      className="text-xs font-bold text-[#B4532A] hover:underline flex items-center gap-1 active:scale-95"
+                    >
+                      <span>Pakai di Keranjang →</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Riwayat Hadiah Pojok Hoki */}
+            {wonPrizes.length > 0 && (
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#FDF7EE] border border-[#D4A24C] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🎡</span>
+                    <h4 className="font-serif text-sm font-bold text-[#2B2625]">
+                      Riwayat Traktiran Pojok Hoki Tersimpan
+                    </h4>
+                  </div>
+                  <span className="text-[10px] text-[#8C7767]">
+                    Total {wonPrizes.length} Hadiah
                   </span>
-                  <Link
-                    href="/cart"
-                    className="text-[11px] font-bold text-[#B4532A] hover:underline"
-                  >
-                    Pakai →
-                  </Link>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {wonPrizes.map((p, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-xl bg-white border border-[#E8DCC2] flex items-center justify-between text-xs"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <p className="font-bold text-[#3E4F30] truncate">{p.prize}</p>
+                        <p className="text-[10px] text-[#8C7767]">Didapat: {p.date}</p>
+                      </div>
+                      {p.code ? (
+                        <span className="font-mono text-xs font-extrabold px-2 py-0.5 rounded bg-[#FCE7DF] text-[#B4532A] border border-[#B4532A]/30 shrink-0">
+                          {p.code}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-[#D4A24C] shrink-0">
+                          ✓ Masuk Saldo
+                        </span>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            )}
           </div>
         )}
 
