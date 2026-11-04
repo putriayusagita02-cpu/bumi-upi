@@ -24,6 +24,8 @@ export default function OrderTrackerPage() {
   ];
 
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [autoProgress, setAutoProgress] = useState(true);
+  const [countdown, setCountdown] = useState(10);
 
   useEffect(() => {
     async function loadOrder() {
@@ -145,57 +147,88 @@ export default function OrderTrackerPage() {
     return () => clearInterval(pollInterval);
   }, [orderId, updatingStatus]);
 
-  const advanceStep = async () => {
-    if (!order || updatingStatus) return;
-    const nextIdx = Math.min(steps.length - 1, currentStepIndex + 1);
-    const nextStatus = steps[nextIdx].key;
-
-    setCurrentStepIndex(nextIdx);
-    const updatedOrder: OrderRecord = { ...order, status: nextStatus };
-    setOrder(updatedOrder);
+  const advanceStep = async (targetNextIdx?: number) => {
+    if (updatingStatus) return;
     setUpdatingStatus(true);
 
-    // Simpan ke localStorage
-    if (typeof window !== 'undefined') {
-      try {
-        const raw = localStorage.getItem('bumi_upi_client_orders');
-        const list = raw ? JSON.parse(raw) : [];
-        const map = new Map(list.map((o: any) => [o.id, o]));
-        map.set(updatedOrder.id, updatedOrder);
-        localStorage.setItem('bumi_upi_client_orders', JSON.stringify(Array.from(map.values())));
-      } catch (e) {
-        console.warn('Failed to persist locally', e);
-      }
+    const nextIdx = typeof targetNextIdx === 'number'
+      ? targetNextIdx
+      : Math.min(steps.length - 1, currentStepIndex + 1);
+
+    if (nextIdx < 0 || nextIdx >= steps.length) {
+      setUpdatingStatus(false);
+      return;
     }
 
-    try {
-      await fetch('/api/orders', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: order.id, status: nextStatus }),
-      });
+    const nextStatus = steps[nextIdx].key;
+    setCurrentStepIndex(nextIdx);
+    setCountdown(10);
 
-      // Sinkronisasi status langsung ke server Admin KDS (Vercel)
-      const adminCandidates = [
-        process.env.NEXT_PUBLIC_ADMIN_URL,
-        'https://bumi-upi-admin.vercel.app',
-        'http://127.0.0.1:3001'
-      ].filter(Boolean) as string[];
+    if (order) {
+      const updatedOrder: OrderRecord = { ...order, status: nextStatus };
+      setOrder(updatedOrder);
 
-      for (const adminEndpoint of adminCandidates) {
-        fetch(`${adminEndpoint}/api/pos/transaction`, {
+      // Simpan ke localStorage
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem('bumi_upi_client_orders');
+          const list = raw ? JSON.parse(raw) : [];
+          const map = new Map(list.map((o: any) => [o.id, o]));
+          map.set(updatedOrder.id, updatedOrder);
+          localStorage.setItem('bumi_upi_client_orders', JSON.stringify(Array.from(map.values())));
+        } catch (e) {
+          console.warn('Failed to persist locally', e);
+        }
+      }
+
+      try {
+        await fetch('/api/orders', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId: order.id, status: nextStatus }),
-          mode: 'cors'
-        }).catch(() => {});
+          body: JSON.stringify({ id: order.id, status: nextStatus }),
+        });
+
+        // Sinkronisasi status langsung ke server Admin KDS (Vercel)
+        const adminCandidates = [
+          process.env.NEXT_PUBLIC_ADMIN_URL,
+          'https://bumi-upi-admin.vercel.app',
+          'http://127.0.0.1:3001'
+        ].filter(Boolean) as string[];
+
+        for (const adminEndpoint of adminCandidates) {
+          fetch(`${adminEndpoint}/api/pos/transaction`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: order.id, status: nextStatus }),
+            mode: 'cors'
+          }).catch(() => {});
+        }
+      } catch (e) {
+        console.warn('Failed to persist status change to server', e);
       }
-    } catch (e) {
-      console.warn('Failed to persist status change to server', e);
-    } finally {
-      setUpdatingStatus(false);
     }
+
+    setUpdatingStatus(false);
   };
+
+  // Timer simulasi otomatis: Otomatis maju ke tahap berikutnya setiap 10 detik tanpa perlu klik manual
+  useEffect(() => {
+    if (!order || currentStepIndex >= steps.length - 1 || !autoProgress) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          advanceStep(currentStepIndex + 1);
+          return 10;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [currentStepIndex, order?.id, autoProgress, updatingStatus]);
 
   const handleCopyReceipt = () => {
     if (order) {
@@ -333,22 +366,40 @@ export default function OrderTrackerPage() {
                 </div>
               </div>
 
-              {/* Interactive Simulation Transition Button */}
+              {/* Interactive Simulation Transition & Auto Progression Controls */}
               <div className="mt-8 pt-4 border-t border-[#E8DCC2]/60 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <span className="text-[11px] text-[#634E3F]">
-                  Fase saat ini:{' '}
-                  <strong className="text-[#2B2625]">{steps[currentStepIndex].label}</strong>
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] text-[#634E3F]">
+                    Fase saat ini:{' '}
+                    <strong className="text-[#2B2625]">{steps[currentStepIndex].label}</strong>
+                  </span>
+                  {currentStepIndex < steps.length - 1 && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-semibold border border-emerald-300">
+                      <span className={`w-1.5 h-1.5 rounded-full ${autoProgress ? 'bg-emerald-600 animate-ping' : 'bg-amber-500'}`} />
+                      <span>{autoProgress ? `Maju otomatis dalam ${countdown} dtk` : 'Otomatis dijeda'}</span>
+                    </span>
+                  )}
+                </div>
+
                 {currentStepIndex < steps.length - 1 ? (
-                  <button
-                    type="button"
-                    onClick={advanceStep}
-                    disabled={updatingStatus}
-                    className="py-1.5 px-3 rounded-lg bg-[#3E4F30] text-[#F5EEDC] text-xs font-semibold hover:brightness-110 active:scale-95 shadow-xs disabled:opacity-60 flex items-center gap-1.5"
-                  >
-                    {updatingStatus && <span className="animate-spin text-xs">⏳</span>}
-                    <span>{updatingStatus ? 'Menyimpan...' : 'Simulasi Status Berikutnya →'}</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAutoProgress(!autoProgress)}
+                      className="px-2.5 py-1.5 rounded-lg border border-[#E8DCC2] bg-white text-[#634E3F] text-[11px] font-medium hover:bg-[#FBF7EE] transition"
+                    >
+                      {autoProgress ? '⏸ Jeda' : '▶ Lanjut Otomatis'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => advanceStep()}
+                      disabled={updatingStatus}
+                      className="py-1.5 px-3 rounded-lg bg-[#3E4F30] text-[#F5EEDC] text-xs font-semibold hover:brightness-110 active:scale-95 shadow-xs disabled:opacity-60 flex items-center gap-1.5"
+                    >
+                      {updatingStatus && <span className="animate-spin text-xs">⏳</span>}
+                      <span>{updatingStatus ? 'Menyimpan...' : 'Percepat Status →'}</span>
+                    </button>
+                  </div>
                 ) : (
                   <span className="text-xs font-bold text-[#3E4F30] bg-[#E4EADF] px-2.5 py-1 rounded-full">
                     🎉 Pesanan Telah Selesai
