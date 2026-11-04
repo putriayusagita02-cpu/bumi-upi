@@ -14,13 +14,54 @@ if (!globalAny.__BUMI_LIVE_CUSTOMERS__) {
 const customerMemStore: Map<string, any> = globalAny.__BUMI_LIVE_CUSTOMERS__;
 
 // Live Inventory Store (105 items across 16 categories)
+if (!globalAny.__BUMI_TOTAL_SOLD_TODAY__) {
+  globalAny.__BUMI_TOTAL_SOLD_TODAY__ = 148;
+}
+
+if (!globalAny.__BUMI_STOCK_ACTIVITY_LOGS__) {
+  globalAny.__BUMI_STOCK_ACTIVITY_LOGS__ = [
+    {
+      id: 'act-001',
+      time: '17:46 WIB',
+      title: 'Meja 04 memesan 2x Tahu Cirawraw (-2 Porsi)',
+      note: 'Gorengan dadakan langsung ngebul di wajan dapur nenek!',
+      type: 'sale'
+    },
+    {
+      id: 'act-002',
+      time: '17:35 WIB',
+      title: 'Kang Asep restock +20 Ulen Upi (+20 Porsi)',
+      note: 'Ketan pulen kelapa bakar baru matang dari cetakan!',
+      type: 'restock'
+    },
+    {
+      id: 'act-003',
+      time: '17:15 WIB',
+      title: 'Dapur kunci 86 Lidah Sambel Hejo (0 Porsi)',
+      note: 'Ludes diserbu rombongan makan siang dari Bandung!',
+      type: 'soldout'
+    }
+  ];
+}
+
 if (!globalAny.__BUMI_LIVE_INVENTORY__) {
   const invMap = new Map<string | number, any>();
   for (const it of CATALOG_105_ITEMS) {
+    let initialStock = (it as any).stock !== undefined ? (it as any).stock : 45;
+
+    // Berikan stok riil untuk menu favorit / bahan terbatas
+    if (it.id === 10) initialStock = 4; // Ulen Upi (Terbatas)
+    else if (it.id === 14) initialStock = 6; // Tahu Cabe Rewel (Terbatas)
+    else if (it.id === 21) initialStock = 3; // Pepes Ayam Kampung (Terbatas)
+    else if (it.id === 68) initialStock = 5; // Gurame Sambal Honje (Terbatas)
+    else if (it.id === 77) initialStock = 7; // Kopi Susu Aren Santan (Terbatas)
+    else if (it.id === 64) initialStock = 0; // Lidah Sambel Hejo (Habis 86)
+    else if (it.id === 89) initialStock = 0; // Es Durian Montong Garut (Habis Musiman)
+
     invMap.set(it.id, {
       ...it,
-      stock: (it as any).stock !== undefined ? (it as any).stock : 45,
-      isAvailable: ((it as any).stock !== undefined ? (it as any).stock : 45) > 0,
+      stock: initialStock,
+      isAvailable: initialStock > 0,
       updatedAt: new Date().toISOString()
     });
   }
@@ -206,9 +247,73 @@ export function deductSharedStock(orderedItems: any[]): boolean {
 
   if (updated.length > 0) {
     saveSharedInventory(updated);
+
+    // Update total porsi terjual & activity logs
+    let totalQty = 0;
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} WIB`;
+
+    for (const ordItem of orderedItems) {
+      totalQty += (ordItem.quantity || ordItem.qty || 1);
+    }
+    globalAny.__BUMI_TOTAL_SOLD_TODAY__ = (globalAny.__BUMI_TOTAL_SOLD_TODAY__ || 148) + totalQty;
+
+    for (const it of updated) {
+      if (!globalAny.__BUMI_STOCK_ACTIVITY_LOGS__) globalAny.__BUMI_STOCK_ACTIVITY_LOGS__ = [];
+      globalAny.__BUMI_STOCK_ACTIVITY_LOGS__.unshift({
+        id: `act-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        time: timeStr,
+        title: `Pesanan Meja: ${it.name} (Sisa: ${it.stock} Unit)`,
+        note: it.stock <= 0 ? '⛔ Menu ludes terjual, terkunci otomatis di POS & Web!' : '🔥 Sedang dimasak hangat di wajan Dapur Nenek!',
+        type: it.stock <= 0 ? 'soldout' : 'sale'
+      });
+    }
+
+    if (globalAny.__BUMI_STOCK_ACTIVITY_LOGS__.length > 20) {
+      globalAny.__BUMI_STOCK_ACTIVITY_LOGS__ = globalAny.__BUMI_STOCK_ACTIVITY_LOGS__.slice(0, 20);
+    }
+
     return true;
   }
   return false;
+}
+
+/**
+ * Get comprehensive metrics including physical units, sold today, and activity logs
+ */
+export function getSharedInventoryMetrics(): {
+  items: any[];
+  stats: { total: number; tersedia: number; terbatas: number; habis: number };
+  totalPhysicalUnits: number;
+  totalSoldToday: number;
+  activityLogs: any[];
+} {
+  const items = getSharedInventory();
+  let tersedia = 0;
+  let terbatas = 0;
+  let habis = 0;
+  let totalPhysicalUnits = 0;
+
+  for (const it of items) {
+    const s = it.stock !== undefined ? it.stock : 0;
+    totalPhysicalUnits += s;
+    if (s <= 0) habis++;
+    else if (s <= 10) terbatas++;
+    else tersedia++;
+  }
+
+  return {
+    items,
+    stats: {
+      total: items.length,
+      tersedia,
+      terbatas,
+      habis
+    },
+    totalPhysicalUnits,
+    totalSoldToday: globalAny.__BUMI_TOTAL_SOLD_TODAY__ || 148,
+    activityLogs: globalAny.__BUMI_STOCK_ACTIVITY_LOGS__ || []
+  };
 }
 
 /**

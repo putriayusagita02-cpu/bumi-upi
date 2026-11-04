@@ -13,43 +13,46 @@ export async function OPTIONS() {
 
 export async function GET() {
   try {
-    let items: any[] = [];
+    let metrics: any = null;
     try {
       const dbPkg = await import('@bumi-upi/db' as any);
-      if (dbPkg && typeof dbPkg.getSharedInventory === 'function') {
-        items = dbPkg.getSharedInventory();
+      if (dbPkg && typeof dbPkg.getSharedInventoryMetrics === 'function') {
+        metrics = dbPkg.getSharedInventoryMetrics();
+      } else if (dbPkg && typeof dbPkg.getSharedInventory === 'function') {
+        const list = dbPkg.getSharedInventory();
+        metrics = {
+          items: list,
+          stats: {
+            total: list.length,
+            tersedia: list.filter((i: any) => (i.stock || 0) > 10).length,
+            terbatas: list.filter((i: any) => (i.stock || 0) > 0 && (i.stock || 0) <= 10).length,
+            habis: list.filter((i: any) => (i.stock || 0) <= 0).length,
+          },
+          totalPhysicalUnits: list.reduce((sum: number, i: any) => sum + (i.stock || 0), 0),
+          totalSoldToday: 148,
+          activityLogs: []
+        };
       }
     } catch {}
 
-    // Fallback to adminStore if db package not hydrated
-    if (!items || items.length === 0) {
-      items = adminStore.items || [];
-    } else {
-      // Sync into adminStore
+    const items = metrics?.items || adminStore.items || [];
+    if (items.length > 0) {
       adminStore.items = items;
-    }
-
-    let tersedia = 0;
-    let terbatas = 0;
-    let habis = 0;
-
-    for (const item of items) {
-      const s = item.stock || 0;
-      if (s <= 0) habis++;
-      else if (s <= 10) terbatas++;
-      else tersedia++;
     }
 
     return NextResponse.json(
       {
         success: true,
         items,
-        stats: {
+        stats: metrics?.stats || {
           total: items.length,
-          tersedia,
-          terbatas,
-          habis,
+          tersedia: items.filter((i: any) => (i.stock || 0) > 10).length,
+          terbatas: items.filter((i: any) => (i.stock || 0) > 0 && (i.stock || 0) <= 10).length,
+          habis: items.filter((i: any) => (i.stock || 0) <= 0).length,
         },
+        totalPhysicalUnits: metrics?.totalPhysicalUnits ?? items.reduce((sum: number, i: any) => sum + (i.stock || 0), 0),
+        totalSoldToday: metrics?.totalSoldToday ?? 148,
+        activityLogs: metrics?.activityLogs || [],
         timestamp: new Date().toISOString()
       },
       { headers: corsHeaders }

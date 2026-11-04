@@ -9,6 +9,29 @@ import { CustomizationModal } from '../../components/CustomizationModal';
 import { KamusRasaModal } from '../../components/KamusRasaModal';
 import { Search, Sparkles, Flame, Heart, Plus, Check } from '../../components/icons';
 
+const FORTUNE_CRACKERS = [
+  {
+    pantun: "Jalan-jalan ka Leuwi Daun, ningali mojang marake payung. Beuteung salatri tong lila ngalamun, dahar liwet beuteung langsung teuneung!",
+    artinya: "Daripada melamun saat lapar melanda, seporsi nasi liwet langsung bikin jiwa perkasa!",
+    nasihat: "Hari ini rezekimu sehangat kuah sop iga Dapur Nenek!"
+  },
+  {
+    pantun: "Ka pasar baru meser tarasi, uihna mampir ka Sukaregang. Hirup mah tong seueur drama jeung gengsi, nu penting ulen haneut tetep nyepeng!",
+    artinya: "Hidup jangan banyak gengsi, yang penting perut kenyang dan ulen hangat selalu di genggaman!",
+    nasihat: "Kabar baik dan senyuman manis sedang menuju mejamu hari ini!"
+  },
+  {
+    pantun: "Ngala kalapa meunang salosin, dibeulah dua dipencetan. Daripada baper mikiran mantan nu tos kawin, mending ngopi susu gula aren santan!",
+    artinya: "Daripada galau mikirin mantan, lebih mantap ngopi susu santan khas Garut!",
+    nasihat: "Tingkat ketenangan batinmu hari ini: 100% lunas!"
+  },
+  {
+    pantun: "Cipanas Garut caina haneut, ngojay di kulah mani genah. Lamun gawe geus mimiti mumet, es cendol durian matak bungah!",
+    artinya: "Kalau kerjaan bikin penat, segelas es durian langsung bikin senyum semringah!",
+    nasihat: "Akan ada rezeki dan traktiran tak terduga minggu ini!"
+  }
+];
+
 function MenuCatalogContent() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') || 'Semua';
@@ -20,6 +43,9 @@ function MenuCatalogContent() {
   const [addedSuccessId, setAddedSuccessId] = useState<number | null>(null);
   const [isKamusModalOpen, setIsKamusModalOpen] = useState(false);
   const [liveStockMap, setLiveStockMap] = useState<Record<number, { stock: number; isAvailable: boolean }>>({});
+  const [fortuneIdx, setFortuneIdx] = useState<number>(0);
+  const [showFortuneModal, setShowFortuneModal] = useState<boolean>(false);
+  const [salatriMood, setSalatriMood] = useState<'all' | 'nyemil' | 'sedang' | 'barbar'>('all');
 
   const { addItem } = useCart();
 
@@ -73,9 +99,21 @@ function MenuCatalogContent() {
         }
       }
 
+      // 4. Salatri Mood Filter (Pengen Nyemil, Sedang, Barbar)
+      if (salatriMood === 'nyemil') {
+        const nyemilCats = ['Gorengan Garut', 'Kudapan Tradisional Garut', 'Wedang Tradisional Hangat', 'Kopi Seduh Garut'];
+        if (!nyemilCats.includes(item.category)) return false;
+      } else if (salatriMood === 'sedang') {
+        const sedangCats = ['Nasi Goreng Kampung', 'Karedok & Sayur Mayur Garut', 'Olahan Ayam Kampung Garut', 'Olahan Bebek & Unggas Garut'];
+        if (!sedangCats.includes(item.category)) return false;
+      } else if (salatriMood === 'barbar') {
+        const barbarCats = ['Paket Nasi Liwet Kastrol', 'Olahan Ikan Gurame & Nila', 'Sop & Kuah Segar Garut', 'Olahan Daging Sapi Garut'];
+        if (!barbarCats.includes(item.category)) return false;
+      }
+
       return true;
     });
-  }, [selectedCategory, searchQuery, selectedTag]);
+  }, [selectedCategory, searchQuery, selectedTag, salatriMood]);
 
   const handleCardAdd = (item: MenuItem) => {
     const live = liveStockMap[item.id];
@@ -113,23 +151,35 @@ function MenuCatalogContent() {
             </p>
           </div>
 
-          {/* Kamus Rasa Button & Live Search Bar */}
+          {/* Kamus Rasa Button, Krupuk Keberuntungan & Live Search Bar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             <button
               type="button"
-              onClick={() => setIsKamusModalOpen(true)}
-              className="py-2.5 px-3.5 rounded-xl bg-[#3E4F30] text-[#F5EEDC] text-xs font-bold shadow-xs hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-1.5 shrink-0"
+              onClick={() => {
+                setFortuneIdx(Math.floor(Math.random() * FORTUNE_CRACKERS.length));
+                setShowFortuneModal(true);
+              }}
+              className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 text-white text-xs font-bold shadow-xs hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-1.5 shrink-0"
+              title="Buka Krupuk Keberuntungan Dapur Nenek"
             >
-              <span>📖 Kamus Rasa & Filosofi</span>
+              <span>🥠 Krupuk Keberuntungan</span>
             </button>
 
-            <div className="relative w-full sm:w-64">
+            <button
+              type="button"
+              onClick={() => setIsKamusModalOpen(true)}
+              className="py-2.5 px-3 rounded-xl bg-[#3E4F30] text-[#F5EEDC] text-xs font-bold shadow-xs hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-1.5 shrink-0"
+            >
+              <span>📖 Kamus Rasa</span>
+            </button>
+
+            <div className="relative w-full sm:w-60">
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C7767]" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari nasi goreng, kopi, mie..."
+                placeholder="Cari nasi liwet, ulen, wedang..."
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E8DCC2] bg-white text-xs text-[#2B2625] focus:outline-none focus:ring-2 focus:ring-[#3E4F30] placeholder:text-[#8C7767] shadow-2xs"
               />
               {searchQuery && (
@@ -142,6 +192,68 @@ function MenuCatalogContent() {
                 </button>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Radar Mood Salatri (Lapar) Sunda */}
+        <div className="bg-white/80 p-3 rounded-2xl border border-[#E8DCC2] flex flex-wrap items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🤤</span>
+            <div>
+              <span className="text-[11px] font-bold text-[#3E4F30] uppercase tracking-wider block">
+                Radar Salatri (Tingkat Lapar) Anda Hari Ini:
+              </span>
+              <span className="text-[10px] text-[#634E3F]">
+                Pilih suasana perut untuk rekomendasi porsi yang paling pas!
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => { setSalatriMood('all'); setSelectedCategory('Semua'); }}
+              className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition ${
+                salatriMood === 'all'
+                  ? 'bg-[#3E4F30] text-[#F5EEDC] shadow-2xs'
+                  : 'bg-[#FBF7EE] border border-[#E8DCC2] text-[#634E3F] hover:bg-white'
+              }`}
+            >
+              Semua Menu
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSalatriMood('nyemil'); setSelectedCategory('Semua'); }}
+              className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition flex items-center gap-1 ${
+                salatriMood === 'nyemil'
+                  ? 'bg-amber-600 text-white shadow-2xs font-bold'
+                  : 'bg-[#FBF7EE] border border-[#E8DCC2] text-[#634E3F] hover:bg-white'
+              }`}
+            >
+              <span>🥟 Hayang Nyemil</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSalatriMood('sedang'); setSelectedCategory('Semua'); }}
+              className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition flex items-center gap-1 ${
+                salatriMood === 'sedang'
+                  ? 'bg-orange-600 text-white shadow-2xs font-bold'
+                  : 'bg-[#FBF7EE] border border-[#E8DCC2] text-[#634E3F] hover:bg-white'
+              }`}
+            >
+              <span>🍲 Beuteung Kukurubukan</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSalatriMood('barbar'); setSelectedCategory('Semua'); }}
+              className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition flex items-center gap-1 ${
+                salatriMood === 'barbar'
+                  ? 'bg-red-600 text-white shadow-2xs font-bold animate-pulse'
+                  : 'bg-[#FBF7EE] border border-[#E8DCC2] text-[#634E3F] hover:bg-white'
+              }`}
+            >
+              <span>🔥 Salatri Barbar!</span>
+            </button>
           </div>
         </div>
 
@@ -390,6 +502,63 @@ function MenuCatalogContent() {
         isOpen={isKamusModalOpen}
         onClose={() => setIsKamusModalOpen(false)}
       />
+
+      {/* Modal Krupuk Keberuntungan & Pantun Nenek Garut */}
+      {showFortuneModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-[#FBF7EE] border-2 border-[#D4A24C] rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 relative">
+            <button
+              type="button"
+              onClick={() => setShowFortuneModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white text-[#634E3F] border border-[#E8DCC2] flex items-center justify-center font-bold text-xs hover:bg-[#F5EEDC]"
+            >
+              ✕
+            </button>
+
+            <div className="text-center space-y-2">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-3xl shadow-xs">
+                🥠
+              </div>
+              <span className="text-[11px] font-bold text-[#B4532A] uppercase tracking-wider block">
+                Krupuk Keberuntungan Dapur Nenek
+              </span>
+              <h3 className="font-serif text-lg font-bold text-[#2B2625]">
+                Ramalan Rasa & Pantun Hari Ini
+              </h3>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-[#E8DCC2] space-y-2.5">
+              <p className="font-serif italic text-sm text-[#3E4F30] font-bold text-center leading-relaxed">
+                "{FORTUNE_CRACKERS[fortuneIdx].pantun}"
+              </p>
+              <div className="text-[11px] text-[#634E3F] bg-[#F5EEDC]/60 p-2.5 rounded-xl">
+                <span className="font-bold text-[#2B2625] block">Maksud Pantun:</span>
+                <span>{FORTUNE_CRACKERS[fortuneIdx].artinya}</span>
+              </div>
+              <div className="text-xs font-bold text-amber-800 bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-center">
+                ✨ Ramalan: {FORTUNE_CRACKERS[fortuneIdx].nasihat}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setFortuneIdx((prev) => (prev + 1) % FORTUNE_CRACKERS.length)}
+                className="flex-1 py-2.5 rounded-xl bg-white border border-[#E8DCC2] text-[#3E4F30] font-bold text-xs hover:bg-[#F5EEDC] transition"
+              >
+                🎲 Krupuk Lain
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFortuneModal(false)}
+                className="flex-1 py-2.5 rounded-xl bg-[#3E4F30] text-[#F5EEDC] font-bold text-xs hover:brightness-110 transition"
+              >
+                Siap Kulineran! 👍
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

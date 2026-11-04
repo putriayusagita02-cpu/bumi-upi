@@ -71,5 +71,6 @@ export {
   saveSharedInventory,
   updateSharedInventoryItem,
   deductSharedStock,
-  bulkRestockSharedInventory
+  bulkRestockSharedInventory,
+  getSharedInventoryMetrics
 } from './liveSync';

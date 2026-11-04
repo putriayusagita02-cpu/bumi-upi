@@ -25,6 +25,29 @@ import { adminStore } from '../../lib/adminStore';
 import { MENU_CATEGORIES, MenuItem } from '../../lib/catalogData';
 import { useAuth } from '../../lib/authContext';
 
+const NENEK_QUOTES = [
+  {
+    sunda: "Tong poho ngopi hideung, ameh teu kukurubukan mikiran cicilan!",
+    arti: "Jangan lupa ngopi hitam, biar perut nggak keroncongan mikirin cicilan!"
+  },
+  {
+    sunda: "Tuang ulen haneut cocol sambel, matak tentrem kana hate!",
+    arti: "Makan ulen hangat cocol sambel, bikin hati adem tentram sentosa!"
+  },
+  {
+    sunda: "Lamun salatri barbar, gancang serbu Liwet Kastrol Garut samemeh ludes!",
+    arti: "Kalau lapar melanda membabi buta, buruan santap Liwet Garut sebelum kehabisan!"
+  },
+  {
+    sunda: "Hirup mah ibarat cengek, lada saeutik mah wajar ameh aya sumanget!",
+    arti: "Hidup itu ibarat cabe rawit, pedas sedikit wajar biar tetap ada semangat hidup!"
+  },
+  {
+    sunda: "Ulah waka baper lamun can dahar, bisi lain sedih tapi saukur salatri!",
+    arti: "Jangan baper dulu kalau belum makan, bisa jadi kamu bukan galau tapi cuma lapar!"
+  }
+];
+
 export default function InventoryPage() {
   const { user } = useAuth();
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -37,6 +60,10 @@ export default function InventoryPage() {
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [lastSyncWib, setLastSyncWib] = useState<string>('Baru saja');
   const [simulatingId, setSimulatingId] = useState<number | null>(null);
+  const [totalPhysicalUnits, setTotalPhysicalUnits] = useState<number>(4700);
+  const [totalSoldToday, setTotalSoldToday] = useState<number>(148);
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [quoteIdx, setQuoteIdx] = useState<number>(0);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -50,6 +77,9 @@ export default function InventoryPage() {
       const data = await res.json();
       if (data.success && Array.isArray(data.items)) {
         setItems(data.items);
+        if (typeof data.totalPhysicalUnits === 'number') setTotalPhysicalUnits(data.totalPhysicalUnits);
+        if (typeof data.totalSoldToday === 'number') setTotalSoldToday(data.totalSoldToday);
+        if (Array.isArray(data.activityLogs)) setActivityLogs(data.activityLogs);
         adminStore.items = data.items;
         adminStore.saveToStorage();
         const now = new Date();
@@ -205,7 +235,7 @@ export default function InventoryPage() {
   };
 
   // Simulate Live Order Sale (Decrements stock in real time)
-  const handleSimulateSale = async (itemId: number) => {
+  const handleSimulateSale = async (itemId: number, quantity = 2) => {
     setSimulatingId(itemId);
     try {
       const res = await fetch('/api/inventory', {
@@ -214,15 +244,18 @@ export default function InventoryPage() {
         body: JSON.stringify({
           action: 'simulate_sale',
           itemId,
-          quantity: 2
+          quantity
         })
       });
       const data = await res.json();
       if (data.success && Array.isArray(data.items)) {
         setItems(data.items);
+        if (typeof data.totalPhysicalUnits === 'number') setTotalPhysicalUnits(data.totalPhysicalUnits);
+        if (typeof data.totalSoldToday === 'number') setTotalSoldToday(data.totalSoldToday);
+        if (Array.isArray(data.activityLogs)) setActivityLogs(data.activityLogs);
       }
       const item = items.find((i) => i.id === itemId);
-      showToast(`🧪 Simulasi Transaksi Meja Kasir: Terjual 2x ${item?.name || 'Menu'} (-2 Unit)!`);
+      showToast(`🔥 Transaksi Meja Kasir: Terjual ${quantity}x ${item?.name || 'Menu'} (-${quantity} Unit)!`);
     } catch (e) {
       console.warn('Simulation failed', e);
     } finally {
@@ -335,8 +368,9 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* Summary KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+      {/* Dynamic 5 KPI Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+        {/* Card 1: Total Menu */}
         <div className="bg-white p-4 rounded-xl border border-krem-border shadow-xs flex flex-col justify-between">
           <div>
             <div className="text-kopi-muted mb-1 flex items-center justify-between">
@@ -348,37 +382,113 @@ export default function InventoryPage() {
           <div className="text-[10px] text-kopi-subtle mt-1">16 Kategori Otentik Garut</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-krem-border shadow-xs flex flex-col justify-between">
+        {/* Card 2: Terjual Hari Ini (Bertambah live tiap ada transaksi) */}
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-200 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="text-kopi-muted mb-1 flex items-center justify-between">
-              <span>Stok Tersedia (&gt;10)</span>
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="text-amber-800 font-medium mb-1 flex items-center justify-between">
+              <span>🔥 Terjual Hari Ini</span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
             </div>
-            <div className="font-serif text-2xl font-bold text-emerald-700">{stats.tersedia} Item</div>
+            <div className="font-serif text-2xl font-bold text-amber-900 font-mono">
+              {totalSoldToday} <span className="text-xs font-sans font-normal text-amber-700">Porsi</span>
+            </div>
           </div>
-          <div className="text-[10px] text-emerald-600 font-semibold mt-1">Siap dipesan kasir & tamu</div>
+          <div className="text-[10px] text-amber-700 font-semibold mt-1 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+            <span>Nambah otomatis tiap beli</span>
+          </div>
         </div>
 
+        {/* Card 3: Sisa Fisik Bahan di Restoran (Berkurang live) */}
         <div className="bg-white p-4 rounded-xl border border-krem-border shadow-xs flex flex-col justify-between">
           <div>
             <div className="text-kopi-muted mb-1 flex items-center justify-between">
-              <span>Stok Menipis (1-10)</span>
+              <span>📦 Sisa Fisik di Dapur</span>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            </div>
+            <div className="font-serif text-2xl font-bold text-emerald-800 font-mono">
+              {totalPhysicalUnits.toLocaleString('id-ID')} <span className="text-xs font-sans font-normal text-emerald-600">Unit</span>
+            </div>
+          </div>
+          <div className="text-[10px] text-emerald-600 font-semibold mt-1">
+            Berkurang live saat dipesan
+          </div>
+        </div>
+
+        {/* Card 4: Menipis */}
+        <div className="bg-white p-4 rounded-xl border border-krem-border shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="text-kopi-muted mb-1 flex items-center justify-between">
+              <span>⚠️ Stok Menipis (1-10)</span>
               <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
             </div>
-            <div className="font-serif text-2xl font-bold text-amber-700">{stats.terbatas} Item</div>
+            <div className="font-serif text-2xl font-bold text-amber-700">{stats.terbatas} Menu</div>
           </div>
           <div className="text-[10px] text-amber-700 font-semibold mt-1">Perlu re-supply bahan dapur</div>
         </div>
 
+        {/* Card 5: Habis (86) */}
         <div className="bg-white p-4 rounded-xl border border-krem-border shadow-xs flex flex-col justify-between">
           <div>
             <div className="text-kopi-muted mb-1 flex items-center justify-between">
-              <span>Stok Habis (0 Unit)</span>
+              <span>⛔ Stok Habis (0 Unit)</span>
               <XCircle className="w-3.5 h-3.5 text-red-600" />
             </div>
-            <div className="font-serif text-2xl font-bold text-red-600">{stats.habis} Item</div>
+            <div className="font-serif text-2xl font-bold text-red-600">{stats.habis} Menu</div>
           </div>
           <div className="text-[10px] text-red-500 font-semibold mt-1">Terkunci otomatis di POS & Web</div>
+        </div>
+      </div>
+
+      {/* Celetukan Nenek Garut & Live Activity Ticker */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* Nenek's Witty Sundanese Quote */}
+        <div className="md:col-span-2 bg-gradient-to-r from-[#FBF7EE] to-[#F5EEDC] p-3.5 rounded-2xl border border-[#E8DCC2] shadow-xs flex items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl select-none">👵</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-[#3E4F30] uppercase tracking-wider">
+                  Nasihat & Celetukan Nenek Garut
+                </span>
+                <span className="text-[9px] px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded font-bold">
+                  Bikin Adem Pikiran
+                </span>
+              </div>
+              <p className="font-serif italic text-sm text-[#2B2625] font-bold mt-0.5">
+                "{NENEK_QUOTES[quoteIdx].sunda}"
+              </p>
+              <p className="text-[11px] text-[#634E3F] mt-0.5">
+                Artinya: {NENEK_QUOTES[quoteIdx].arti}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setQuoteIdx((prev) => (prev + 1) % NENEK_QUOTES.length)}
+            className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-[#F5EEDC] text-[#3E4F30] text-xs font-bold border border-[#E8DCC2] shrink-0 shadow-2xs transition active:scale-95"
+            title="Ganti nasihat nenek lainnya"
+          >
+            🎲 Celetukan Lain
+          </button>
+        </div>
+
+        {/* Live Order Ticker */}
+        <div className="bg-white p-3.5 rounded-2xl border border-krem-border shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-olive-900 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Aktivitas Dapur Terkini</span>
+            </span>
+            <span className="text-[10px] font-mono text-kopi-subtle">Real-Time</span>
+          </div>
+          <div className="mt-1">
+            <div className="text-xs font-bold text-kopi truncate">
+              {activityLogs[0]?.title || 'Menunggu pesanan meja berikutnya...'}
+            </div>
+            <div className="text-[11px] text-kopi-muted italic truncate">
+              {activityLogs[0]?.note || 'Dapur Bumi Upi siap menyajikan masakan otentik!'}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -652,6 +762,21 @@ export default function InventoryPage() {
                           </div>
                         ) : (
                           <div className="flex items-center justify-end gap-1.5">
+                            {/* Live Buy 1 Test Button */}
+                            <button
+                              onClick={() => handleSimulateSale(item.id, 1)}
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold transition flex items-center gap-0.5 ${
+                                (item.stock || 0) <= 0
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 active:scale-95 shadow-2xs'
+                              }`}
+                              disabled={(item.stock || 0) <= 0}
+                              title="Simulasi 1 porsi dibeli tamu di web / kasir POS"
+                            >
+                              <Zap className="w-2.5 h-2.5 text-amber-700" />
+                              <span>Beli 1</span>
+                            </button>
+
                             <button
                               onClick={() => handleStartEdit(item)}
                               className="p-1 text-olive hover:bg-olive-50 rounded transition"
