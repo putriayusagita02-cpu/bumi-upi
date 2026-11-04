@@ -117,7 +117,73 @@ export async function GET(req: NextRequest) {
     const customerId = url.searchParams.get('customerId');
 
     if (id) {
-      // 1. Check shared live store first (has updated status from Kitchen / POS)
+      // 1. Cek Supabase Database terlebih dahulu jika kredensial aktif
+      try {
+        const dbPkg = await import('@bumi-upi/db' as any);
+        if (dbPkg && dbPkg.getSupabaseClient && typeof dbPkg.isMockMode === 'function' && !dbPkg.isMockMode()) {
+          const client = dbPkg.getSupabaseClient();
+          if (client) {
+            const isUUID = id.includes('-');
+            const query = client.from('orders').select('*, order_items(*)');
+            const { data } = isUUID ? await query.eq('id', id).maybeSingle() : await query.eq('order_number', id).maybeSingle();
+            if (data) {
+              const mapped = {
+                id: data.id,
+                orderNumber: data.order_number,
+                status: data.status,
+                orderType: data.order_type,
+                tableNumber: data.table_number,
+                subtotal: data.subtotal,
+                discountAmount: data.discount_amount,
+                finalAmount: data.final_amount,
+                pointsEarned: data.points_earned,
+                paymentMethod: data.payment_method,
+                paymentStatus: data.payment_status,
+                items: (data.order_items || []).map((it: any) => ({
+                  productId: it.menu_item_id,
+                  itemName: it.item_name,
+                  unitPrice: it.unit_price,
+                  quantity: it.quantity,
+                  subtotal: it.subtotal
+                })),
+                createdAt: data.created_at
+              };
+              return NextResponse.json({ success: true, order: mapped });
+            }
+          }
+        }
+      } catch {}
+
+      // 2. Tarik langsung dari server Admin KDS/POS (baik di Vercel maupun lokal)
+      const candidateAdminUrls = [
+        process.env.ADMIN_URL,
+        process.env.NEXT_PUBLIC_ADMIN_URL,
+        'https://bumi-upi-admin.vercel.app',
+        'http://127.0.0.1:3001'
+      ].filter(Boolean) as string[];
+
+      for (const aUrl of candidateAdminUrls) {
+        try {
+          const controller = new AbortController();
+          const toId = setTimeout(() => controller.abort(), 1500);
+          const res = await fetch(`${aUrl}/api/pos/transaction`, {
+            signal: controller.signal,
+            cache: 'no-store'
+          });
+          clearTimeout(toId);
+          if (res.ok) {
+            const d = await res.json();
+            if (d.success && Array.isArray(d.orders)) {
+              const matched = d.orders.find((o: any) => o.id === id || o.orderNumber === id || o.idempotencyKey === id);
+              if (matched) {
+                return NextResponse.json({ success: true, order: matched });
+              }
+            }
+          }
+        } catch {}
+      }
+
+      // 3. Cek shared live store lokal (@bumi-upi/db)
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const dbPkg = await import('@bumi-upi/db' as any);
@@ -134,6 +200,7 @@ export async function GET(req: NextRequest) {
         // fallback
       }
 
+      // 4. Cek local orderEngine
       const order = orderEngine.getOrder(id);
       if (!order) {
         return NextResponse.json(
@@ -193,7 +260,33 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // 1. Update in shared live store
+    // 1. Update di Supabase jika credentials aktif
+    try {
+      const dbPkg = await import('@bumi-upi/db' as any);
+      if (dbPkg && dbPkg.supabaseService && typeof dbPkg.isMockMode === 'function' && !dbPkg.isMockMode()) {
+        await dbPkg.supabaseService.updateOrderStatus(id, status);
+      }
+    } catch {}
+
+    // 2. Kirim update ke server Admin POS / KDS
+    const candidateAdminUrls = [
+      process.env.ADMIN_URL,
+      process.env.NEXT_PUBLIC_ADMIN_URL,
+      'https://bumi-upi-admin.vercel.app',
+      'http://127.0.0.1:3001'
+    ].filter(Boolean) as string[];
+
+    for (const aUrl of candidateAdminUrls) {
+      try {
+        fetch(`${aUrl}/api/pos/transaction`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: id, status }),
+        }).catch(() => {});
+      } catch {}
+    }
+
+    // 3. Update in shared live store
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const dbPkg = await import('@bumi-upi/db' as any);
@@ -204,7 +297,7 @@ export async function PATCH(req: NextRequest) {
       // fallback
     }
 
-    // 2. Update in local order engine
+    // 4. Update in local order engine
     const updated = orderEngine.updateOrderStatus(id, status);
 
     return NextResponse.json({

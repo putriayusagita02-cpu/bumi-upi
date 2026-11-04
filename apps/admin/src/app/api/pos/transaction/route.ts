@@ -143,6 +143,24 @@ export async function PATCH(req: NextRequest) {
       }
 
       adminStore.updateOrderStatus(orderId, status);
+
+      // Kirim pembaruan status ke portal web
+      const candidateWebUrls = [
+        process.env.NEXT_PUBLIC_WEB_URL,
+        process.env.WEB_URL,
+        'http://127.0.0.1:3000'
+      ].filter(Boolean) as string[];
+
+      for (const wUrl of candidateWebUrls) {
+        try {
+          fetch(`${wUrl}/api/orders`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: orderId, status }),
+          }).catch(() => {});
+        } catch {}
+      }
+
       return NextResponse.json({ success: true, orderId, status }, { headers: corsHeaders });
     }
 

@@ -31,33 +31,62 @@ export default function OrderTrackerPage() {
       if (updatingStatus) return;
 
       try {
-        const res = await fetch(`/api/orders?id=${orderId}`);
-        const data = await res.json();
-        if (data.success && data.order) {
-          // Ambil status tersimpan dari localStorage jika status lokal lebih maju
-          let resolvedStatus = data.order.status;
-          if (typeof window !== 'undefined') {
-            try {
-              const raw = localStorage.getItem('bumi_upi_client_orders');
-              if (raw) {
-                const list = JSON.parse(raw);
-                const local = list.find((o: any) => o.id === orderId || o.orderNumber === orderId);
-                if (local && local.status) {
-                  const sIdx = steps.findIndex((s) => s.key === local.status);
-                  const sServerIdx = steps.findIndex((s) => s.key === resolvedStatus);
-                  if (sIdx > sServerIdx) {
-                    resolvedStatus = local.status;
+        let serverOrder: OrderRecord | null = null;
+
+        // 1. Tarik dari API web
+        try {
+          const res = await fetch(`/api/orders?id=${orderId}`, { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.order) {
+              serverOrder = data.order;
+            }
+          }
+        } catch {}
+
+        // 2. Tarik langsung dari server Admin KDS (jika live di Vercel atau beda domain)
+        if (!serverOrder || serverOrder.status === 'confirmed') {
+          try {
+            const adminCandidates = [
+              process.env.NEXT_PUBLIC_ADMIN_URL,
+              'https://bumi-upi-admin.vercel.app',
+              'http://127.0.0.1:3001'
+            ].filter(Boolean) as string[];
+
+            for (const adminEndpoint of adminCandidates) {
+              const aRes = await fetch(`${adminEndpoint}/api/pos/transaction`, { cache: 'no-store' });
+              if (aRes.ok) {
+                const aData = await aRes.json();
+                if (aData.success && Array.isArray(aData.orders)) {
+                  const matched = aData.orders.find((o: any) => o.id === orderId || o.orderNumber === orderId);
+                  if (matched) {
+                    serverOrder = matched;
+                    break;
                   }
                 }
               }
-            } catch {}
-          }
+            }
+          } catch {}
+        }
 
-          setOrder({ ...data.order, status: resolvedStatus });
+        if (serverOrder) {
+          const resolvedStatus = serverOrder.status || 'confirmed';
+          setOrder({ ...serverOrder, status: resolvedStatus });
           const idx = steps.findIndex((s) => s.key === resolvedStatus);
           setCurrentStepIndex(idx >= 0 ? idx : 0);
+
+          // Sinkronkan ke browser localStorage agar riwayat member juga selalu terupdate
+          if (typeof window !== 'undefined') {
+            try {
+              const raw = localStorage.getItem('bumi_upi_client_orders');
+              const list = raw ? JSON.parse(raw) : [];
+              const map = new Map(list.map((o: any) => [o.id, o]));
+              map.set(serverOrder.id, { ...serverOrder, status: resolvedStatus });
+              localStorage.setItem('bumi_upi_client_orders', JSON.stringify(Array.from(map.values())));
+            } catch {}
+          }
         } else {
-          // Cek localStorage browser terlebih dahulu
+          // Cek localStorage browser
           let localOrder: OrderRecord | null = null;
           if (typeof window !== 'undefined') {
             try {
@@ -126,7 +155,7 @@ export default function OrderTrackerPage() {
     setOrder(updatedOrder);
     setUpdatingStatus(true);
 
-    // Simpan ke localStorage agar tidak ter-reset oleh interval polling
+    // Simpan ke localStorage
     if (typeof window !== 'undefined') {
       try {
         const raw = localStorage.getItem('bumi_upi_client_orders');
@@ -145,6 +174,22 @@ export default function OrderTrackerPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: order.id, status: nextStatus }),
       });
+
+      // Sinkronisasi status langsung ke server Admin KDS (Vercel)
+      const adminCandidates = [
+        process.env.NEXT_PUBLIC_ADMIN_URL,
+        'https://bumi-upi-admin.vercel.app',
+        'http://127.0.0.1:3001'
+      ].filter(Boolean) as string[];
+
+      for (const adminEndpoint of adminCandidates) {
+        fetch(`${adminEndpoint}/api/pos/transaction`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: order.id, status: nextStatus }),
+          mode: 'cors'
+        }).catch(() => {});
+      }
     } catch (e) {
       console.warn('Failed to persist status change to server', e);
     } finally {
