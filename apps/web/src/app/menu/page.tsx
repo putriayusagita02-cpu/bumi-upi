@@ -99,15 +99,37 @@ function MenuCatalogContent() {
         }
       }
 
-      // 4. Salatri Mood Filter (Pengen Nyemil, Sedang, Barbar)
+      // 4. Salatri Mood Filter (mapped to authentic 16 Bumi Upi categories)
       if (salatriMood === 'nyemil') {
-        const nyemilCats = ['Gorengan Garut', 'Kudapan Tradisional Garut', 'Wedang Tradisional Hangat', 'Kopi Seduh Garut'];
+        const nyemilCats = [
+          'Cemilan Cepuluh',
+          'Pisang Bakar',
+          'Satu Rasa Cukup',
+          'Roti Bakar Gurih',
+          'Dua Lebih Spesial',
+          'Kopi',
+          'Teh & Susu',
+          'Seger Adem',
+          'Es Esan',
+          'Jejamuan',
+          'Jus 4 U'
+        ];
         if (!nyemilCats.includes(item.category)) return false;
       } else if (salatriMood === 'sedang') {
-        const sedangCats = ['Nasi Goreng Kampung', 'Karedok & Sayur Mayur Garut', 'Olahan Ayam Kampung Garut', 'Olahan Bebek & Unggas Garut'];
+        const sedangCats = [
+          'Pemadam Kelaparan',
+          'Emih - Emihan',
+          'Ber Pepes An',
+          'Roti Bakar Gurih'
+        ];
         if (!sedangCats.includes(item.category)) return false;
       } else if (salatriMood === 'barbar') {
-        const barbarCats = ['Paket Nasi Liwet Kastrol', 'Olahan Ikan Gurame & Nila', 'Sop & Kuah Segar Garut', 'Olahan Daging Sapi Garut'];
+        const barbarCats = [
+          'Tuntutan Masyarakat',
+          'Sumber Protein',
+          'Pemadam Kelaparan',
+          'Ber Pepes An'
+        ];
         if (!barbarCats.includes(item.category)) return false;
       }
 
@@ -215,44 +237,62 @@ function MenuCatalogContent() {
               onClick={() => { setSalatriMood('all'); setSelectedCategory('Semua'); }}
               className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition ${
                 salatriMood === 'all'
-                  ? 'bg-[#3E4F30] text-[#F5EEDC] shadow-2xs'
+                  ? 'bg-[#3E4F30] text-[#F5EEDC] shadow-2xs font-bold'
                   : 'bg-[#FBF7EE] border border-[#E8DCC2] text-[#634E3F] hover:bg-white'
               }`}
             >
-              Semua Menu
+              Semua Menu (105)
             </button>
             <button
               type="button"
-              onClick={() => { setSalatriMood('nyemil'); setSelectedCategory('Semua'); }}
+              onClick={() => {
+                setSalatriMood(salatriMood === 'nyemil' ? 'all' : 'nyemil');
+                setSelectedCategory('Semua');
+              }}
               className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition flex items-center gap-1 ${
                 salatriMood === 'nyemil'
-                  ? 'bg-amber-600 text-white shadow-2xs font-bold'
+                  ? 'bg-amber-600 text-white shadow-2xs font-bold ring-2 ring-amber-300'
                   : 'bg-[#FBF7EE] border border-[#E8DCC2] text-[#634E3F] hover:bg-white'
               }`}
             >
               <span>🥟 Hayang Nyemil</span>
+              <span className={`text-[10px] px-1 rounded-full ${salatriMood === 'nyemil' ? 'bg-white/20' : 'bg-amber-100 text-amber-800'}`}>
+                56
+              </span>
             </button>
             <button
               type="button"
-              onClick={() => { setSalatriMood('sedang'); setSelectedCategory('Semua'); }}
+              onClick={() => {
+                setSalatriMood(salatriMood === 'sedang' ? 'all' : 'sedang');
+                setSelectedCategory('Semua');
+              }}
               className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition flex items-center gap-1 ${
                 salatriMood === 'sedang'
-                  ? 'bg-orange-600 text-white shadow-2xs font-bold'
+                  ? 'bg-orange-600 text-white shadow-2xs font-bold ring-2 ring-orange-300'
                   : 'bg-[#FBF7EE] border border-[#E8DCC2] text-[#634E3F] hover:bg-white'
               }`}
             >
               <span>🍲 Beuteung Kukurubukan</span>
+              <span className={`text-[10px] px-1 rounded-full ${salatriMood === 'sedang' ? 'bg-white/20' : 'bg-orange-100 text-orange-800'}`}>
+                23
+              </span>
             </button>
             <button
               type="button"
-              onClick={() => { setSalatriMood('barbar'); setSelectedCategory('Semua'); }}
+              onClick={() => {
+                setSalatriMood(salatriMood === 'barbar' ? 'all' : 'barbar');
+                setSelectedCategory('Semua');
+              }}
               className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition flex items-center gap-1 ${
                 salatriMood === 'barbar'
-                  ? 'bg-red-600 text-white shadow-2xs font-bold animate-pulse'
+                  ? 'bg-red-600 text-white shadow-2xs font-bold ring-2 ring-red-300 animate-pulse'
                   : 'bg-[#FBF7EE] border border-[#E8DCC2] text-[#634E3F] hover:bg-white'
               }`}
             >
               <span>🔥 Salatri Barbar!</span>
+              <span className={`text-[10px] px-1 rounded-full ${salatriMood === 'barbar' ? 'bg-white/20' : 'bg-red-100 text-red-800'}`}>
+                24
+              </span>
             </button>
           </div>
         </div>
@@ -290,9 +330,12 @@ function MenuCatalogContent() {
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
         <button
           type="button"
-          onClick={() => setSelectedCategory('Semua')}
+          onClick={() => {
+            setSelectedCategory('Semua');
+            setSalatriMood('all');
+          }}
           className={`shrink-0 py-2 px-4 rounded-xl text-xs font-bold transition-all ${
-            selectedCategory === 'Semua'
+            selectedCategory === 'Semua' && salatriMood === 'all'
               ? 'bg-[#3E4F30] text-[#F5EEDC] shadow-sm'
               : 'bg-[#FBF7EE] border border-[#E8DCC2] text-[#634E3F] hover:bg-white'
           }`}
@@ -306,7 +349,10 @@ function MenuCatalogContent() {
             <button
               key={cat.code}
               type="button"
-              onClick={() => setSelectedCategory(cat.name)}
+              onClick={() => {
+                setSelectedCategory(cat.name);
+                setSalatriMood('all');
+              }}
               className={`shrink-0 flex items-center gap-1.5 py-2 px-3.5 rounded-xl text-xs font-semibold transition-all ${
                 isSelected
                   ? 'bg-[#3E4F30] text-[#F5EEDC] shadow-sm'
@@ -342,6 +388,7 @@ function MenuCatalogContent() {
               setSelectedCategory('Semua');
               setSearchQuery('');
               setSelectedTag('Semua');
+              setSalatriMood('all');
             }}
             className="text-xs font-bold text-[#B4532A] hover:underline"
           >
